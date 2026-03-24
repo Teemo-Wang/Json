@@ -1,0 +1,4 @@
+.work-master/
+.DS_Store
+node_modules/
+.kiro/
