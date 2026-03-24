@@ -15,8 +15,19 @@ h1 { font-size: 24px; font-weight: 600; margin-bottom: 8px; }
 .panel { background: #fff; border-radius: 12px; padding: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.08); margin-bottom: 16px; }
 .panel-title { font-size: 16px; font-weight: 600; margin-bottom: 16px; display: flex; align-items: center; gap: 8px; }
 
+/* 模板选择区 */
+.template-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 16px; }
+.template-btn { padding: 12px 8px; border: 2px solid #e5e5ea; border-radius: 8px; background: #fff; cursor: pointer; text-align: center; transition: all 0.2s; }
+.template-btn:hover { border-color: #0071e3; background: #f0f7ff; }
+.template-btn.active { border-color: #0071e3; background: #e8f4fd; }
+.template-btn .size { font-size: 14px; font-weight: 600; color: #1d1d1f; }
+.template-btn .label { font-size: 11px; color: #86868b; margin-top: 4px; }
+.template-btn .imgs { font-size: 11px; color: #0071e3; margin-top: 2px; }
+.divider { display: flex; align-items: center; gap: 12px; margin: 16px 0; color: #86868b; font-size: 12px; }
+.divider::before, .divider::after { content: ''; flex: 1; height: 1px; background: #e5e5ea; }
+
 /* JSON 上传区 */
-.json-upload { border: 2px dashed #d2d2d7; border-radius: 8px; padding: 20px; text-align: center; cursor: pointer; transition: all 0.2s; }
+.json-upload { border: 2px dashed #d2d2d7; border-radius: 8px; padding: 16px; text-align: center; cursor: pointer; transition: all 0.2s; font-size: 13px; }
 .json-upload:hover, .json-upload.dragover { border-color: #0071e3; background: #f0f7ff; }
 .json-upload.loaded { border-color: #34c759; background: #f0faf3; }
 .json-upload input { display: none; }
@@ -42,7 +53,7 @@ h1 { font-size: 24px; font-weight: 600; margin-bottom: 8px; }
 
 /* 预览区 */
 .preview-area { position: sticky; top: 24px; }
-#lottie-preview { width: 360px; height: 360px; background: #f5f5f7; border-radius: 8px; margin: 0 auto; }
+#lottie-preview { background: #f5f5f7; border-radius: 8px; margin: 0 auto; }
 .preview-placeholder { width: 360px; height: 360px; display: flex; align-items: center; justify-content: center; color: #86868b; font-size: 14px; background: #f5f5f7; border-radius: 8px; }
 
 /* 操作按钮 */
@@ -60,29 +71,52 @@ h1 { font-size: 24px; font-weight: 600; margin-bottom: 8px; }
 .status.show { display: block; }
 .status.success { background: #d4edda; color: #155724; }
 .status.info { background: #d1ecf1; color: #0c5460; }
-
-/* 替换计数 */
+.status.loading { background: #fff3cd; color: #856404; }
 .replace-count { font-size: 12px; color: #34c759; font-weight: 500; margin-left: auto; }
 
 @media (max-width: 900px) {
   .layout { grid-template-columns: 1fr; }
   .preview-area { position: static; }
+  .template-grid { grid-template-columns: repeat(2, 1fr); }
 }
 </style>
 </head>
 <body>
 <div class="container">
   <h1>🎬 Lottie 图片替换工具</h1>
-  <p class="subtitle">上传 Lottie JSON → 替换内嵌图片素材 → 实时预览 → 导出新 JSON</p>
+  <p class="subtitle">选择模板尺寸 → 替换图片素材 → 实时预览 → 导出新 JSON</p>
 
   <div class="layout">
     <div class="left-col">
-      <!-- JSON 上传 -->
+      <!-- 模板选择 -->
       <div class="panel">
-        <div class="panel-title">📄 加载 JSON 文件</div>
+        <div class="panel-title">📐 选择模板尺寸</div>
+        <div class="template-grid" id="templateGrid">
+          <button class="template-btn" data-template="360x360">
+            <div class="size">360×360</div>
+            <div class="label">正方形</div>
+            <div class="imgs">5 张图片</div>
+          </button>
+          <button class="template-btn" data-template="480x204">
+            <div class="size">480×204</div>
+            <div class="label">横幅</div>
+            <div class="imgs">5 张图片</div>
+          </button>
+          <button class="template-btn" data-template="372x186">
+            <div class="size">372×186</div>
+            <div class="label">卡片</div>
+            <div class="imgs">5 张图片</div>
+          </button>
+          <button class="template-btn" data-template="liangche">
+            <div class="size">靓车动画</div>
+            <div class="label">1098×651</div>
+            <div class="imgs">8 张图片</div>
+          </button>
+        </div>
+        <div class="divider">或者上传自定义 JSON</div>
         <div class="json-upload" id="jsonUpload">
           <input type="file" id="jsonInput" accept=".json">
-          <div id="jsonUploadText">拖拽 JSON 文件到此处，或点击选择文件</div>
+          <div id="jsonUploadText">拖拽 JSON 文件到此处，或点击选择</div>
         </div>
       </div>
 
@@ -93,7 +127,7 @@ h1 { font-size: 24px; font-weight: 600; margin-bottom: 8px; }
           <span class="replace-count" id="replaceCount"></span>
         </div>
         <div class="slots" id="slotsContainer">
-          <div style="color:#86868b; font-size:13px; text-align:center; padding:20px;">请先加载 JSON 文件</div>
+          <div style="color:#86868b; font-size:13px; text-align:center; padding:20px;">请先选择模板或上传 JSON 文件</div>
         </div>
       </div>
 
@@ -112,10 +146,7 @@ h1 { font-size: 24px; font-weight: 600; margin-bottom: 8px; }
       <div class="panel">
         <div class="panel-title">👁️ 动画预览</div>
         <div id="previewContainer">
-          <div class="preview-placeholder">加载 JSON 后预览动画</div>
-        </div>
-        <div class="actions" style="justify-content:center;">
-          <button class="btn btn-secondary" id="btnRefresh" disabled>🔄 刷新预览</button>
+          <div class="preview-placeholder">选择模板后预览动画</div>
         </div>
       </div>
     </div>
@@ -123,12 +154,22 @@ h1 { font-size: 24px; font-weight: 600; margin-bottom: 8px; }
 </div>
 
 <script>
+// 模板配置
+const TEMPLATES = {
+  '360x360':  { file: '360x360.json',  name: '360×360 正方形', w: 360, h: 360 },
+  '480x204':  { file: '480x204.json',  name: '480×204 横幅',   w: 480, h: 204 },
+  '372x186':  { file: '372x186.json',  name: '372×186 卡片',   w: 372, h: 186 },
+  'liangche': { file: 'liangche.json',  name: '靓车动画',       w: 360, h: 360 }
+};
+
 let lottieData = null;
 let originalImages = {};
 let lottieAnim = null;
 let replacedCount = 0;
 let jsonFileName = 'data.json';
+let currentTemplate = null;
 
+const templateGrid = document.getElementById('templateGrid');
 const jsonUpload = document.getElementById('jsonUpload');
 const jsonInput = document.getElementById('jsonInput');
 const jsonUploadText = document.getElementById('jsonUploadText');
@@ -137,9 +178,48 @@ const slotCount = document.getElementById('slotCount');
 const replaceCountEl = document.getElementById('replaceCount');
 const btnExport = document.getElementById('btnExport');
 const btnReset = document.getElementById('btnReset');
-const btnRefresh = document.getElementById('btnRefresh');
 const previewContainer = document.getElementById('previewContainer');
 const statusMsg = document.getElementById('statusMsg');
+
+// 模板按钮点击
+templateGrid.addEventListener('click', (e) => {
+  const btn = e.target.closest('.template-btn');
+  if (!btn) return;
+  const key = btn.dataset.template;
+  loadTemplate(key, btn);
+});
+
+async function loadTemplate(key, btnEl) {
+  const tpl = TEMPLATES[key];
+  if (!tpl) return;
+
+  // 高亮选中按钮
+  document.querySelectorAll('.template-btn').forEach(b => b.classList.remove('active'));
+  btnEl.classList.add('active');
+
+  // 清除自定义上传状态
+  jsonUpload.classList.remove('loaded');
+  jsonUploadText.textContent = '拖拽 JSON 文件到此处，或点击选择';
+
+  showStatus('⏳ 加载模板中...', 'loading');
+
+  try {
+    const resp = await fetch(tpl.file);
+    if (!resp.ok) throw new Error('加载失败: ' + resp.status);
+    lottieData = await resp.json();
+    currentTemplate = key;
+    jsonFileName = tpl.file.replace('.json', '') + '-data.json';
+    replacedCount = 0;
+    updateReplaceCount();
+    initSlots();
+    renderPreview();
+    btnExport.disabled = false;
+    btnReset.disabled = false;
+    showStatus(`✅ 已加载模板: ${tpl.name}`, 'success');
+  } catch (err) {
+    showStatus('❌ 模板加载失败: ' + err.message, 'info');
+  }
+}
 
 // JSON 上传
 jsonUpload.addEventListener('click', () => jsonInput.click());
@@ -161,6 +241,8 @@ function loadJSON(file) {
   reader.onload = (e) => {
     try {
       lottieData = JSON.parse(e.target.result);
+      currentTemplate = null;
+      document.querySelectorAll('.template-btn').forEach(b => b.classList.remove('active'));
       jsonUpload.classList.add('loaded');
       jsonUploadText.textContent = `✅ 已加载: ${file.name} (${(file.size / 1024).toFixed(1)}KB)`;
       replacedCount = 0;
@@ -169,7 +251,6 @@ function loadJSON(file) {
       renderPreview();
       btnExport.disabled = false;
       btnReset.disabled = false;
-      btnRefresh.disabled = false;
     } catch (err) {
       alert('JSON 解析失败: ' + err.message);
     }
@@ -188,14 +269,12 @@ function initSlots() {
     return;
   }
 
-  images.forEach((asset, idx) => {
+  images.forEach((asset) => {
     originalImages[asset.id] = { p: asset.p, u: asset.u || '', e: asset.e };
-
     const imgSrc = asset.e === 1 ? asset.p : ((asset.u || '') + asset.p);
     const slot = document.createElement('div');
     slot.className = 'slot';
     slot.dataset.assetId = asset.id;
-
     slot.innerHTML = `
       <div class="slot-preview">
         <img src="${imgSrc}" alt="${asset.id}" onerror="this.style.display='none';this.nextElementSibling.style.display='block'">
@@ -213,13 +292,8 @@ function initSlots() {
         <button class="btn-restore" data-asset-id="${asset.id}">还原</button>
       </div>
     `;
-
-    const fileInput = slot.querySelector('input[type="file"]');
-    fileInput.addEventListener('change', (e) => handleImageReplace(e, asset.id, slot));
-
-    const restoreBtn = slot.querySelector('.btn-restore');
-    restoreBtn.addEventListener('click', () => handleRestore(asset.id, slot));
-
+    slot.querySelector('input[type="file"]').addEventListener('change', (e) => handleImageReplace(e, asset.id, slot));
+    slot.querySelector('.btn-restore').addEventListener('click', () => handleRestore(asset.id, slot));
     slotsContainer.appendChild(slot);
   });
 }
@@ -227,36 +301,25 @@ function initSlots() {
 function handleImageReplace(e, assetId, slotEl) {
   const file = e.target.files[0];
   if (!file) return;
-
   const reader = new FileReader();
   reader.onload = (ev) => {
     const base64 = ev.target.result;
     const asset = lottieData.assets.find(a => a.id === assetId);
-    if (asset) {
-      asset.p = base64;
-      asset.u = '';
-      asset.e = 1;
-    }
-
+    if (asset) { asset.p = base64; asset.u = ''; asset.e = 1; }
     const img = slotEl.querySelector('.slot-preview img');
-    img.src = base64;
-    img.style.display = '';
+    img.src = base64; img.style.display = '';
     slotEl.querySelector('.placeholder').style.display = 'none';
-
     if (!slotEl.classList.contains('replaced')) {
       slotEl.classList.add('replaced');
       replacedCount++;
       updateReplaceCount();
     }
-
     const tempImg = new Image();
     tempImg.onload = () => {
       slotEl.querySelector('.slot-meta').textContent = `${tempImg.width}×${tempImg.height}px → 已替换`;
     };
     tempImg.src = base64;
-
     showStatus(`✅ ${assetId} 已替换`, 'success');
-    // 替换后自动刷新预览
     renderPreview();
   };
   reader.readAsDataURL(file);
@@ -265,28 +328,17 @@ function handleImageReplace(e, assetId, slotEl) {
 function handleRestore(assetId, slotEl) {
   const orig = originalImages[assetId];
   if (!orig) return;
-
   const asset = lottieData.assets.find(a => a.id === assetId);
-  if (asset) {
-    asset.p = orig.p;
-    asset.u = orig.u;
-    asset.e = orig.e;
-  }
-
+  if (asset) { asset.p = orig.p; asset.u = orig.u; asset.e = orig.e; }
   const imgSrc = orig.e === 1 ? orig.p : (orig.u + orig.p);
-  const img = slotEl.querySelector('.slot-preview img');
-  img.src = imgSrc;
-  img.style.display = '';
-
+  slotEl.querySelector('.slot-preview img').src = imgSrc;
   if (slotEl.classList.contains('replaced')) {
     slotEl.classList.remove('replaced');
     replacedCount--;
     updateReplaceCount();
   }
-
   slotEl.querySelector('.slot-meta').textContent = `${asset.w || '?'}×${asset.h || '?'}px`;
   showStatus(`🔄 ${assetId} 已还原`, 'info');
-  // 还原后自动刷新预览
   renderPreview();
 }
 
@@ -295,7 +347,15 @@ function updateReplaceCount() {
 }
 
 function renderPreview() {
-  previewContainer.innerHTML = '<div id="lottie-preview"></div>';
+  // 根据动画尺寸自适应预览区
+  const aw = lottieData.w || 360;
+  const ah = lottieData.h || 360;
+  const maxW = 360;
+  const scale = Math.min(maxW / aw, maxW / ah);
+  const pw = Math.round(aw * scale);
+  const ph = Math.round(ah * scale);
+
+  previewContainer.innerHTML = `<div id="lottie-preview" style="width:${pw}px;height:${ph}px;background:#f5f5f7;border-radius:8px;margin:0 auto;"></div>`;
   if (lottieAnim) lottieAnim.destroy();
   lottieAnim = lottie.loadAnimation({
     container: document.getElementById('lottie-preview'),
@@ -313,11 +373,10 @@ btnExport.addEventListener('click', () => {
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
-  const exportName = jsonFileName.replace('.json', '-modified.json');
-  a.download = exportName;
+  a.download = jsonFileName.replace('.json', '-modified.json');
   a.click();
   URL.revokeObjectURL(url);
-  showStatus(`✅ 已导出: ${exportName}`, 'success');
+  showStatus(`✅ 已导出`, 'success');
 });
 
 // 重置
@@ -337,15 +396,10 @@ btnReset.addEventListener('click', () => {
   showStatus('🔄 已重置为原始图片', 'info');
 });
 
-// 刷新预览
-btnRefresh.addEventListener('click', () => {
-  if (lottieData) renderPreview();
-});
-
 function showStatus(msg, type) {
   statusMsg.textContent = msg;
   statusMsg.className = `status show ${type}`;
-  setTimeout(() => statusMsg.classList.remove('show'), 3000);
+  if (type !== 'loading') setTimeout(() => statusMsg.classList.remove('show'), 3000);
 }
 </script>
 </body>
