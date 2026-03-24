@@ -256,6 +256,8 @@ function handleImageReplace(e, assetId, slotEl) {
     tempImg.src = base64;
 
     showStatus(`✅ ${assetId} 已替换`, 'success');
+    // 替换后自动刷新预览
+    renderPreview();
   };
   reader.readAsDataURL(file);
 }
@@ -284,6 +286,8 @@ function handleRestore(assetId, slotEl) {
 
   slotEl.querySelector('.slot-meta').textContent = `${asset.w || '?'}×${asset.h || '?'}px`;
   showStatus(`🔄 ${assetId} 已还原`, 'info');
+  // 还原后自动刷新预览
+  renderPreview();
 }
 
 function updateReplaceCount() {
