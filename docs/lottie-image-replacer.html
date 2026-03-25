@@ -36,6 +36,7 @@ h1 { font-size: 24px; font-weight: 600; margin-bottom: 8px; }
 .slots { display: flex; flex-direction: column; gap: 12px; }
 .slot { display: grid; grid-template-columns: 80px 1fr auto; gap: 12px; align-items: center; padding: 12px; border: 1px solid #e5e5ea; border-radius: 8px; transition: all 0.2s; }
 .slot:hover { border-color: #0071e3; }
+.slot.dragover { border-color: #0071e3; background: #f0f7ff; border-style: dashed; }
 .slot-preview { width: 80px; height: 60px; background: #f5f5f7; border-radius: 6px; display: flex; align-items: center; justify-content: center; overflow: hidden; }
 .slot-preview img { max-width: 100%; max-height: 100%; object-fit: contain; }
 .slot-preview .placeholder { color: #86868b; font-size: 11px; }
@@ -294,6 +295,17 @@ function initSlots() {
     `;
     slot.querySelector('input[type="file"]').addEventListener('change', (e) => handleImageReplace(e, asset.id, slot));
     slot.querySelector('.btn-restore').addEventListener('click', () => handleRestore(asset.id, slot));
+    // 拖拽替换图片
+    slot.addEventListener('dragover', (e) => { e.preventDefault(); slot.classList.add('dragover'); });
+    slot.addEventListener('dragleave', () => slot.classList.remove('dragover'));
+    slot.addEventListener('drop', (e) => {
+      e.preventDefault();
+      slot.classList.remove('dragover');
+      const file = e.dataTransfer.files[0];
+      if (file && file.type.startsWith('image/')) {
+        replaceSlotImage(file, asset.id, slot);
+      }
+    });
     slotsContainer.appendChild(slot);
   });
 }
@@ -301,6 +313,10 @@ function initSlots() {
 function handleImageReplace(e, assetId, slotEl) {
   const file = e.target.files[0];
   if (!file) return;
+  replaceSlotImage(file, assetId, slotEl);
+}
+
+function replaceSlotImage(file, assetId, slotEl) {
   const reader = new FileReader();
   reader.onload = (ev) => {
     const base64 = ev.target.result;
