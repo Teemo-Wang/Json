@@ -1,0 +1,8 @@
+{
+  "name": "批量替换素材",
+  "id": "replace-material-plugin",
+  "api": "1.0.0",
+  "main": "code.js",
+  "ui": "ui.html",
+  "editorType": ["figma"]
+}

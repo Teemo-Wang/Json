@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+      padding: 16px;
+      margin: 0;
+      background: #fff;
+    }
+    h2 { font-size: 16px; margin: 0 0 16px 0; }
+    label { display: block; font-size: 12px; color: #333; margin-bottom: 4px; }
+    input {
+      width: 100%;
+      padding: 8px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      font-size: 13px;
+      margin-bottom: 12px;
+      box-sizing: border-box;
+    }
+    .btn-group { display: flex; gap: 8px; margin-top: 8px; }
+    button {
+      flex: 1;
+      padding: 8px 16px;
+      border: none;
+      border-radius: 4px;
+      font-size: 13px;
+      cursor: pointer;
+    }
+    .btn-primary { background: #18A0FB; color: #fff; }
+    .btn-cancel { background: #eee; color: #333; }
+    .btn-detach { width: 100%; padding: 10px; background: #7c3aed; color: #fff; border: none; border-radius: 4px; font-size: 13px; cursor: pointer; }
+    .btn-detach:hover { background: #6d28d9; }
+    h3 { color: #333; }
+    #message { margin-top: 12px; font-size: 12px; padding: 8px; border-radius: 4px; display: none; }
+    .success { background: #e8f5e9; color: #2e7d32; }
+    .error { background: #ffebee; color: #c62828; }
+  </style>
+</head>
+<body>
+  <h2>素材工具箱</h2>
+
+  <div style="margin-bottom: 16px; padding-bottom: 12px; border-bottom: 1px solid #eee;">
+    <button class="btn-detach" id="detachBtn">🔓 一键分离所有实例</button>
+    <div id="detachMessage" style="margin-top: 8px; font-size: 12px; display: none; padding: 6px 8px; border-radius: 4px;"></div>
+  </div>
+
+  <h3 style="font-size: 14px; margin: 0 0 12px 0;">批量替换素材</h3>
+
+  <label>源素材名称（复制谁）</label>
+  <input id="sourceName" type="text" value="素材-爱心 7" placeholder="输入源素材图层名" />
+
+  <label>目标素材名称（替换谁）</label>
+  <input id="targetName" type="text" value="素材-+1-2 1" placeholder="输入要被替换的图层名" />
+
+  <div class="btn-group">
+    <button class="btn-cancel" id="cancelBtn">取消</button>
+    <button class="btn-primary" id="replaceBtn">开始替换</button>
+  </div>
+
+  <div id="message"></div>
+
+  <script>
+    document.getElementById('detachBtn').onclick = () => {
+      parent.postMessage({ pluginMessage: { type: 'detach-all' } }, '*');
+    };
+
+    document.getElementById('replaceBtn').onclick = () => {
+      const sourceName = document.getElementById('sourceName').value.trim();
+      const targetName = document.getElementById('targetName').value.trim();
+      if (!sourceName || !targetName) {
+        showMessage('请填写完整的素材名称', 'error');
+        return;
+      }
+      parent.postMessage({ pluginMessage: { type: 'replace', sourceName, targetName } }, '*');
+    };
+
+    document.getElementById('cancelBtn').onclick = () => {
+      parent.postMessage({ pluginMessage: { type: 'cancel' } }, '*');
+    };
+
+    window.onmessage = (event) => {
+      const msg = event.data.pluginMessage;
+      if (!msg) return;
+      if (msg.target === 'detach') {
+        const el = document.getElementById('detachMessage');
+        el.textContent = msg.message;
+        el.className = msg.type;
+        el.style.display = 'block';
+      } else {
+        showMessage(msg.message, msg.type);
+      }
+    };
+
+    function showMessage(text, type) {
+      const el = document.getElementById('message');
+      el.textContent = text;
+      el.className = type;
+      el.style.display = 'block';
+    }
+  </script>
+</body>
+</html>
