@@ -5,7 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Lottie 图片替换工具</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/lottie-web/5.12.2/lottie.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/gif.js/0.2.0/gif.js"></script>
 <style>
 * { margin: 0; padding: 0; box-sizing: border-box; }
 body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f5f5f7; color: #1d1d1f; padding: 24px; }
@@ -405,6 +404,186 @@ btnReset.addEventListener('click', () => {
   showStatus('🔄 已重置为原始图片', 'info');
 });
 
+// 内联 GIF 编码器（无需外部依赖，避免跨域问题）
+class GIFEncoder {
+  constructor(w, h) {
+    this.width = w;
+    this.height = h;
+    this.frames = [];
+    this.delay = 100;
+  }
+  setDelay(ms) { this.delay = ms; }
+  addFrame(canvas) {
+    const ctx = canvas.getContext('2d');
+    const imageData = ctx.getImageData(0, 0, this.width, this.height);
+    this.frames.push({ data: imageData.data, delay: this.delay });
+  }
+  encode() {
+    // 使用 MediaRecorder 方案的备选：直接生成 APNG 或用简化 GIF 编码
+    // 这里用简化的 GIF89a 编码
+    const buf = [];
+    const w = this.width, h = this.height;
+    // GIF 头
+    buf.push(0x47,0x49,0x46,0x38,0x39,0x61); // GIF89a
+    buf.push(w&0xff,(w>>8)&0xff, h&0xff,(h>>8)&0xff);
+    buf.push(0x70, 0x00, 0x00); // 无全局色表, 背景色0, 像素宽高比0
+    // Netscape 循环扩展（无限循环）
+    buf.push(0x21,0xff,0x0b);
+    const ns = 'NETSCAPE2.0';
+    for(let i=0;i<ns.length;i++) buf.push(ns.charCodeAt(i));
+    buf.push(0x03,0x01,0x00,0x00,0x00);
+
+    for(const frame of this.frames) {
+      // 量化颜色到 256 色
+      const {palette, indexed} = this._quantize(frame.data, w, h);
+      const palSize = 256;
+      const palBits = 7; // log2(256)-1
+
+      // 图形控制扩展
+      const d = Math.round(frame.delay / 10);
+      buf.push(0x21,0xf9,0x04);
+      // 查找透明色（如果有alpha=0的像素）
+      let transIdx = -1;
+      for(let i=0;i<frame.data.length;i+=4){
+        if(frame.data[i+3]<128){ transIdx = indexed[i/4]; break; }
+      }
+      if(transIdx>=0){
+        buf.push(0x09); // 有透明
+      } else {
+        buf.push(0x08); // 无透明，恢复背景
+      }
+      buf.push(d&0xff,(d>>8)&0xff);
+      buf.push(transIdx>=0?transIdx:0);
+      buf.push(0x00);
+
+      // 图像描述符
+      buf.push(0x2c);
+      buf.push(0,0,0,0); // left, top
+      buf.push(w&0xff,(w>>8)&0xff, h&0xff,(h>>8)&0xff);
+      buf.push(0x80|palBits); // 局部色表
+
+      // 局部色表
+      for(let i=0;i<palSize;i++){
+        buf.push(palette[i*3], palette[i*3+1], palette[i*3+2]);
+      }
+
+      // LZW 编码
+      const minCodeSize = 8;
+      buf.push(minCodeSize);
+      const lzwData = this._lzwEncode(indexed, minCodeSize);
+      // 分块输出
+      let pos = 0;
+      while(pos < lzwData.length){
+        const chunkSize = Math.min(255, lzwData.length - pos);
+        buf.push(chunkSize);
+        for(let i=0;i<chunkSize;i++) buf.push(lzwData[pos++]);
+      }
+      buf.push(0x00); // 块终止
+    }
+    buf.push(0x3b); // GIF 结束
+    return new Blob([new Uint8Array(buf)], {type:'image/gif'});
+  }
+  _quantize(data, w, h) {
+    // 中位切分量化到 256 色
+    const pixelCount = w * h;
+    const pixels = [];
+    for(let i=0;i<pixelCount;i++){
+      pixels.push([data[i*4], data[i*4+1], data[i*4+2], i]);
+    }
+    const boxes = [pixels];
+    while(boxes.length < 256){
+      // 找最大的 box 切分
+      let maxIdx=0, maxRange=0;
+      for(let b=0;b<boxes.length;b++){
+        if(boxes[b].length<=1) continue;
+        const range = this._boxRange(boxes[b]);
+        if(range.maxRange > maxRange){ maxRange=range.maxRange; maxIdx=b; }
+      }
+      if(maxRange===0) break;
+      const box = boxes[maxIdx];
+      const range = this._boxRange(box);
+      box.sort((a,b)=>a[range.maxCh]-b[range.maxCh]);
+      const mid = Math.floor(box.length/2);
+      boxes.splice(maxIdx, 1, box.slice(0,mid), box.slice(mid));
+    }
+    // 生成调色板和索引
+    const palette = new Uint8Array(256*3);
+    const indexed = new Uint8Array(pixelCount);
+    const colorMap = new Map();
+    for(let b=0;b<boxes.length && b<256;b++){
+      let rSum=0,gSum=0,bSum=0;
+      for(const p of boxes[b]){ rSum+=p[0]; gSum+=p[1]; bSum+=p[2]; }
+      const len = boxes[b].length || 1;
+      const r=Math.round(rSum/len), g=Math.round(gSum/len), bl=Math.round(bSum/len);
+      palette[b*3]=r; palette[b*3+1]=g; palette[b*3+2]=bl;
+      for(const p of boxes[b]) indexed[p[3]] = b;
+    }
+    return {palette, indexed};
+  }
+  _boxRange(box){
+    let rMin=255,rMax=0,gMin=255,gMax=0,bMin=255,bMax=0;
+    for(const p of box){
+      if(p[0]<rMin)rMin=p[0]; if(p[0]>rMax)rMax=p[0];
+      if(p[1]<gMin)gMin=p[1]; if(p[1]>gMax)gMax=p[1];
+      if(p[2]<bMin)bMin=p[2]; if(p[2]>bMax)bMax=p[2];
+    }
+    const rR=rMax-rMin, gR=gMax-gMin, bR=bMax-bMin;
+    let maxRange=rR, maxCh=0;
+    if(gR>maxRange){maxRange=gR;maxCh=1;}
+    if(bR>maxRange){maxRange=bR;maxCh=2;}
+    return {maxRange, maxCh};
+  }
+  _lzwEncode(indexed, minCodeSize){
+    const clearCode = 1 << minCodeSize;
+    const eoiCode = clearCode + 1;
+    let codeSize = minCodeSize + 1;
+    let nextCode = eoiCode + 1;
+    const output = [];
+    let bitBuf = 0, bitCount = 0;
+    const emit = (code) => {
+      bitBuf |= (code << bitCount);
+      bitCount += codeSize;
+      while(bitCount >= 8){
+        output.push(bitBuf & 0xff);
+        bitBuf >>= 8;
+        bitCount -= 8;
+      }
+    };
+    // 使用对象作为字典（比 Map 快）
+    let dict = {};
+    const resetDict = () => {
+      dict = {};
+      for(let i=0;i<clearCode;i++) dict[String(i)] = i;
+      nextCode = eoiCode + 1;
+      codeSize = minCodeSize + 1;
+    };
+    resetDict();
+    emit(clearCode);
+    let cur = String(indexed[0]);
+    for(let i=1;i<indexed.length;i++){
+      const next = String(indexed[i]);
+      const key = cur + ',' + next;
+      if(dict[key] !== undefined){
+        cur = key;
+      } else {
+        emit(dict[cur]);
+        if(nextCode < 4096){
+          dict[key] = nextCode++;
+          if(nextCode > (1<<codeSize) && codeSize<12) codeSize++;
+        } else {
+          emit(clearCode);
+          resetDict();
+        }
+        cur = next;
+      }
+    }
+    emit(dict[cur]);
+    emit(eoiCode);
+    if(bitCount > 0) output.push(bitBuf & 0xff);
+    return output;
+  }
+}
+
 // 导出 GIF
 btnExportGif.addEventListener('click', async () => {
   if (!lottieData) return;
@@ -414,16 +593,14 @@ btnExportGif.addEventListener('click', async () => {
   showStatus('⏳ 正在生成 GIF，请稍候...', 'loading');
 
   try {
-    // 获取动画原始尺寸
     const aw = lottieData.w || 360;
     const ah = lottieData.h || 360;
     const totalFrames = lottieData.op - lottieData.ip;
     const fps = lottieData.fr || 30;
-    // 每隔几帧采样一次，控制 GIF 大小（目标约 15fps）
     const sampleInterval = Math.max(1, Math.round(fps / 15));
     const delay = Math.round((sampleInterval / fps) * 1000);
 
-    // 创建离屏 canvas 渲染 Lottie
+    // 创建离屏 canvas 用于 Lottie 渲染
     const offCanvas = document.createElement('canvas');
     offCanvas.width = aw;
     offCanvas.height = ah;
@@ -440,53 +617,40 @@ btnExportGif.addEventListener('click', async () => {
       rendererSettings: { context: offCanvas.getContext('2d'), clearCanvas: true }
     });
 
-    // 等待动画加载完成
     await new Promise((resolve) => {
       offAnim.addEventListener('DOMLoaded', resolve);
     });
 
-    // 创建 GIF 编码器
-    const gif = new GIF({
-      workers: 2,
-      quality: 10,
-      width: aw,
-      height: ah,
-      workerScript: 'https://cdnjs.cloudflare.com/ajax/libs/gif.js/0.2.0/gif.worker.js'
-    });
+    // 使用内联 GIF 编码器
+    const encoder = new GIFEncoder(aw, ah);
+    encoder.setDelay(delay);
 
-    // 逐帧捕获
     for (let i = 0; i < totalFrames; i += sampleInterval) {
       offAnim.goToAndStop(i, true);
-      // 等待一帧渲染
       await new Promise(r => requestAnimationFrame(r));
-      // 复制 canvas 内容
       const frameCanvas = document.createElement('canvas');
       frameCanvas.width = aw;
       frameCanvas.height = ah;
       const ctx = frameCanvas.getContext('2d');
       ctx.drawImage(offCanvas, 0, 0);
-      gif.addFrame(frameCanvas, { delay: delay, copy: true });
+      encoder.addFrame(frameCanvas);
     }
 
-    // 编码完成后下载
-    gif.on('finished', (blob) => {
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = jsonFileName.replace('.json', '.gif');
-      a.click();
-      URL.revokeObjectURL(url);
-      btnExportGif.disabled = false;
-      btnExportGif.classList.remove('exporting');
-      btnExportGif.textContent = '🎞️ 导出 GIF';
-      showStatus(`✅ GIF 已导出 (${(blob.size / 1024).toFixed(0)}KB)`, 'success');
-    });
+    const blob = encoder.encode();
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = jsonFileName.replace('.json', '.gif');
+    a.click();
+    URL.revokeObjectURL(url);
 
-    gif.render();
-
-    // 清理离屏元素
     offAnim.destroy();
     document.body.removeChild(offContainer);
+
+    btnExportGif.disabled = false;
+    btnExportGif.classList.remove('exporting');
+    btnExportGif.textContent = '🎞️ 导出 GIF';
+    showStatus(`✅ GIF 已导出 (${(blob.size / 1024).toFixed(0)}KB)`, 'success');
   } catch (err) {
     btnExportGif.disabled = false;
     btnExportGif.classList.remove('exporting');
