@@ -116,6 +116,26 @@ h1 { font-size: 24px; font-weight: 600; margin-bottom: 8px; }
 .history-info .time { color: #1d1d1f; font-weight: 500; }
 .auto-save-dot { width: 6px; height: 6px; border-radius: 50%; background: #34c759; display: inline-block; margin-right: 4px; animation: pulse 2s infinite; }
 @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.4; } }
+
+/* 紧凑布局优化 */
+body { padding: 16px; }
+h1 { font-size: 20px; margin-bottom: 4px; }
+.subtitle { margin-bottom: 16px; font-size: 13px; }
+.panel { padding: 14px; margin-bottom: 12px; }
+.panel-title { font-size: 14px; margin-bottom: 10px; }
+.template-grid { gap: 6px; margin-bottom: 10px; }
+.template-btn { padding: 8px 6px; }
+.template-btn .size { font-size: 13px; }
+.divider { margin: 10px 0; }
+.json-upload { padding: 10px; font-size: 12px; }
+.slots { max-height: 300px; overflow-y: auto; }
+.slot { padding: 8px 10px; gap: 8px; }
+.slot-preview { width: 60px; height: 45px; }
+.actions { flex-wrap: wrap; gap: 8px; }
+.btn { padding: 8px 14px; font-size: 13px; }
+.layer-list { max-height: 280px; }
+.layer-item { padding: 8px 10px; }
+.control-row { margin-bottom: 6px; }
 </style>
 </head>
 <body>
@@ -169,19 +189,17 @@ h1 { font-size: 24px; font-weight: 600; margin-bottom: 8px; }
       </div>
 
       <!-- 操作 -->
-      <div class="panel">
-        <div class="actions">
-          <button class="btn btn-primary" id="btnExport" disabled>📥 导出 JSON</button>
-          <button class="btn btn-secondary" id="btnReset" disabled>🔄 重置所有替换</button>
+      <div class="panel" style="padding:10px 14px;">
+        <div class="actions" style="align-items:center;">
+          <button class="btn btn-primary" id="btnExport" disabled style="padding:6px 12px;font-size:12px;">📥 导出</button>
+          <button class="btn btn-secondary" id="btnReset" disabled style="padding:6px 12px;font-size:12px;">🔄 重置</button>
           <div class="undo-bar">
             <button class="btn-undo" id="btnUndo" disabled title="撤销 (Ctrl+Z)">↩</button>
             <button class="btn-redo" id="btnRedo" disabled title="重做 (Ctrl+Shift+Z)">↪</button>
             <span class="undo-info" id="undoInfo"></span>
           </div>
-        </div>
-        <div class="history-bar" id="historyBar" style="display:none;">
-          <span class="history-info" id="historyInfo"><span class="auto-save-dot"></span>自动保存中</span>
-          <button class="btn btn-secondary" id="btnClearHistory" style="padding:4px 10px;font-size:11px;">清除记录</button>
+          <span class="history-info" id="historyInfo" style="margin-left:auto;font-size:11px;color:#86868b;display:none;"><span class="auto-save-dot"></span>已保存</span>
+          <button class="btn btn-secondary" id="btnClearHistory" style="padding:3px 8px;font-size:10px;display:none;">清除</button>
         </div>
         <div class="status" id="statusMsg"></div>
       </div>
@@ -806,7 +824,7 @@ document.addEventListener('keydown', (e) => {
 
 // ========== 历史记录功能（localStorage 自动保存/恢复） ==========
 const STORAGE_KEY = 'lottie-replacer-session';
-const historyBar = document.getElementById('historyBar');
+// historyBar 已合并到操作栏
 const historyInfo = document.getElementById('historyInfo');
 const btnClearHistory = document.getElementById('btnClearHistory');
 
@@ -877,7 +895,7 @@ function restoreSession() {
 }
 
 function updateHistoryUI(timestamp) {
-  historyBar.style.display = 'flex';
+  historyInfo.style.display = 'inline'; btnClearHistory.style.display = 'inline';
   if (timestamp) {
     const d = new Date(timestamp);
     const timeStr = d.toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
@@ -888,7 +906,7 @@ function updateHistoryUI(timestamp) {
 // 清除历史记录
 btnClearHistory.addEventListener('click', () => {
   localStorage.removeItem(STORAGE_KEY);
-  historyBar.style.display = 'none';
+  historyInfo.style.display = 'none'; btnClearHistory.style.display = 'none';
   showStatus('🗑️ 历史记录已清除', 'info');
 });
 
