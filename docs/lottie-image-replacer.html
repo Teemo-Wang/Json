@@ -270,6 +270,7 @@ async function loadTemplate(key, btnEl) {
     btnExport.disabled = false;
     btnReset.disabled = false;
     showStatus(`✅ 已加载模板: ${tpl.name}`, 'success');
+    scheduleSave();
   } catch (err) {
     showStatus('❌ 模板加载失败: ' + err.message, 'info');
   }
@@ -306,6 +307,7 @@ function loadJSON(file) {
       renderPreview();
       btnExport.disabled = false;
       btnReset.disabled = false;
+      scheduleSave();
     } catch (err) {
       alert('JSON 解析失败: ' + err.message);
     }
@@ -391,6 +393,7 @@ function replaceSlotImage(file, assetId, slotEl) {
     tempImg.src = base64;
     showStatus(`✅ ${assetId} 已替换`, 'success');
     renderPreview();
+    scheduleSave();
   };
   reader.readAsDataURL(file);
 }
@@ -410,6 +413,7 @@ function handleRestore(assetId, slotEl) {
   slotEl.querySelector('.slot-meta').textContent = `${asset.w || '?'}×${asset.h || '?'}px`;
   showStatus(`🔄 ${assetId} 已还原`, 'info');
   renderPreview();
+  scheduleSave();
 }
 
 function updateReplaceCount() {
@@ -434,8 +438,6 @@ function renderPreview() {
     autoplay: true,
     animationData: JSON.parse(JSON.stringify(lottieData))
   });
-  // 每次预览刷新时自动保存
-  scheduleSave();
 }
 
 // 导出
@@ -633,6 +635,7 @@ function bindLayerControls(item, idx, layer) {
 
     renderPreview();
     showStatus('🔄 图层已重置', 'info');
+    scheduleSave();
   });
 }
 
@@ -703,26 +706,28 @@ const btnClearHistory = document.getElementById('btnClearHistory');
 // 保存当前工作状态到 localStorage
 function saveSession() {
   if (!lottieData) return;
-  try {
-    const session = {
-      lottieData: lottieData,
-      originalImages: originalImages,
-      replacedCount: replacedCount,
-      jsonFileName: jsonFileName,
-      currentTemplate: currentTemplate,
-      timestamp: Date.now()
-    };
-    const json = JSON.stringify(session);
-    // localStorage 有大小限制（约5MB），检查是否超出
-    if (json.length > 4.5 * 1024 * 1024) {
-      console.warn('会话数据过大，跳过自动保存');
-      return;
+  // 异步保存，不阻塞 UI
+  requestAnimationFrame(() => {
+    try {
+      const session = {
+        lottieData: lottieData,
+        originalImages: originalImages,
+        replacedCount: replacedCount,
+        jsonFileName: jsonFileName,
+        currentTemplate: currentTemplate,
+        timestamp: Date.now()
+      };
+      const json = JSON.stringify(session);
+      if (json.length > 4.5 * 1024 * 1024) {
+        console.warn('会话数据过大，跳过自动保存');
+        return;
+      }
+      localStorage.setItem(STORAGE_KEY, json);
+      updateHistoryUI(session.timestamp);
+    } catch (e) {
+      console.warn('自动保存失败:', e.message);
     }
-    localStorage.setItem(STORAGE_KEY, json);
-    updateHistoryUI(session.timestamp);
-  } catch (e) {
-    console.warn('自动保存失败:', e.message);
-  }
+  });
 }
 
 // 从 localStorage 恢复工作状态
@@ -784,11 +789,11 @@ btnClearHistory.addEventListener('click', () => {
 let saveTimer = null;
 function scheduleSave() {
   if (saveTimer) clearTimeout(saveTimer);
-  saveTimer = setTimeout(saveSession, 500); // 防抖 500ms
+  saveTimer = setTimeout(saveSession, 2000); // 防抖 2 秒，避免频繁序列化大 JSON
 }
 
-// 页面加载时尝试恢复
-restoreSession();
+// 页面加载时延迟恢复，不阻塞首屏渲染
+setTimeout(restoreSession, 50);
 
 function showStatus(msg, type) {
   statusMsg.textContent = msg;
