@@ -101,6 +101,14 @@ h1 { font-size: 24px; font-weight: 600; margin-bottom: 8px; }
 .control-row .val-input::-webkit-inner-spin-button, .control-row .val-input::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
 .btn-reset-layer { padding: 4px 10px; font-size: 11px; border: 1px solid #d2d2d7; color: #86868b; background: #fff; border-radius: 4px; cursor: pointer; margin-top: 4px; }
 .btn-reset-layer:hover { border-color: #0071e3; color: #0071e3; }
+
+/* 历史记录 */
+.history-bar { display: flex; align-items: center; gap: 8px; margin-top: 12px; padding-top: 12px; border-top: 1px solid #e5e5ea; }
+.history-bar .btn { padding: 6px 14px; font-size: 12px; }
+.history-info { font-size: 12px; color: #86868b; flex: 1; }
+.history-info .time { color: #1d1d1f; font-weight: 500; }
+.auto-save-dot { width: 6px; height: 6px; border-radius: 50%; background: #34c759; display: inline-block; margin-right: 4px; animation: pulse 2s infinite; }
+@keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.4; } }
 </style>
 </head>
 <body>
@@ -158,6 +166,10 @@ h1 { font-size: 24px; font-weight: 600; margin-bottom: 8px; }
         <div class="actions">
           <button class="btn btn-primary" id="btnExport" disabled>📥 导出 JSON</button>
           <button class="btn btn-secondary" id="btnReset" disabled>🔄 重置所有替换</button>
+        </div>
+        <div class="history-bar" id="historyBar" style="display:none;">
+          <span class="history-info" id="historyInfo"><span class="auto-save-dot"></span>自动保存中</span>
+          <button class="btn btn-secondary" id="btnClearHistory" style="padding:4px 10px;font-size:11px;">清除记录</button>
         </div>
         <div class="status" id="statusMsg"></div>
       </div>
@@ -422,6 +434,8 @@ function renderPreview() {
     autoplay: true,
     animationData: JSON.parse(JSON.stringify(lottieData))
   });
+  // 每次预览刷新时自动保存
+  scheduleSave();
 }
 
 // 导出
@@ -678,6 +692,103 @@ function getLayerTypeName(ty) {
   const types = { 0: '合成', 1: '实色', 2: '图片', 3: '空对象', 4: '形状', 5: '文字', 6: '音频', 13: '摄像机' };
   return types[ty] || ('类型' + ty);
 }
+
+
+// ========== 历史记录功能（localStorage 自动保存/恢复） ==========
+const STORAGE_KEY = 'lottie-replacer-session';
+const historyBar = document.getElementById('historyBar');
+const historyInfo = document.getElementById('historyInfo');
+const btnClearHistory = document.getElementById('btnClearHistory');
+
+// 保存当前工作状态到 localStorage
+function saveSession() {
+  if (!lottieData) return;
+  try {
+    const session = {
+      lottieData: lottieData,
+      originalImages: originalImages,
+      replacedCount: replacedCount,
+      jsonFileName: jsonFileName,
+      currentTemplate: currentTemplate,
+      timestamp: Date.now()
+    };
+    const json = JSON.stringify(session);
+    // localStorage 有大小限制（约5MB），检查是否超出
+    if (json.length > 4.5 * 1024 * 1024) {
+      console.warn('会话数据过大，跳过自动保存');
+      return;
+    }
+    localStorage.setItem(STORAGE_KEY, json);
+    updateHistoryUI(session.timestamp);
+  } catch (e) {
+    console.warn('自动保存失败:', e.message);
+  }
+}
+
+// 从 localStorage 恢复工作状态
+function restoreSession() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return false;
+    const session = JSON.parse(raw);
+    if (!session.lottieData) return false;
+
+    lottieData = session.lottieData;
+    originalImages = session.originalImages || {};
+    replacedCount = session.replacedCount || 0;
+    jsonFileName = session.jsonFileName || 'data.json';
+    currentTemplate = session.currentTemplate || null;
+
+    // 恢复模板按钮高亮
+    if (currentTemplate) {
+      const btn = document.querySelector(`.template-btn[data-template="${currentTemplate}"]`);
+      if (btn) btn.classList.add('active');
+    } else {
+      jsonUpload.classList.add('loaded');
+      jsonUploadText.textContent = '✅ 已从历史记录恢复';
+    }
+
+    updateReplaceCount();
+    initSlots();
+    initLayers();
+    renderPreview();
+    btnExport.disabled = false;
+    btnReset.disabled = false;
+    updateHistoryUI(session.timestamp);
+    showStatus('✅ 已恢复上次工作状态', 'success');
+    return true;
+  } catch (e) {
+    console.warn('恢复会话失败:', e.message);
+    localStorage.removeItem(STORAGE_KEY);
+    return false;
+  }
+}
+
+function updateHistoryUI(timestamp) {
+  historyBar.style.display = 'flex';
+  if (timestamp) {
+    const d = new Date(timestamp);
+    const timeStr = d.toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+    historyInfo.innerHTML = '<span class="auto-save-dot"></span>上次保存 <span class="time">' + timeStr + '</span>';
+  }
+}
+
+// 清除历史记录
+btnClearHistory.addEventListener('click', () => {
+  localStorage.removeItem(STORAGE_KEY);
+  historyBar.style.display = 'none';
+  showStatus('🗑️ 历史记录已清除', 'info');
+});
+
+// 自动保存：在关键操作后触发
+let saveTimer = null;
+function scheduleSave() {
+  if (saveTimer) clearTimeout(saveTimer);
+  saveTimer = setTimeout(saveSession, 500); // 防抖 500ms
+}
+
+// 页面加载时尝试恢复
+restoreSession();
 
 function showStatus(msg, type) {
   statusMsg.textContent = msg;
