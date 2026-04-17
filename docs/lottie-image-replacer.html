@@ -102,6 +102,13 @@ h1 { font-size: 24px; font-weight: 600; margin-bottom: 8px; }
 .btn-reset-layer { padding: 4px 10px; font-size: 11px; border: 1px solid #d2d2d7; color: #86868b; background: #fff; border-radius: 4px; cursor: pointer; margin-top: 4px; }
 .btn-reset-layer:hover { border-color: #0071e3; color: #0071e3; }
 
+
+/* 撤销/重做 */
+.undo-bar { display: flex; align-items: center; gap: 6px; }
+.btn-undo, .btn-redo { width: 36px; height: 36px; border: 1px solid #e5e5ea; border-radius: 8px; background: #fff; cursor: pointer; font-size: 16px; display: flex; align-items: center; justify-content: center; transition: all 0.15s; color: #1d1d1f; }
+.btn-undo:hover, .btn-redo:hover { border-color: #0071e3; background: #f0f7ff; }
+.btn-undo:disabled, .btn-redo:disabled { opacity: 0.3; cursor: not-allowed; }
+.undo-info { font-size: 11px; color: #86868b; margin-left: 4px; }
 /* 历史记录 */
 .history-bar { display: flex; align-items: center; gap: 8px; margin-top: 12px; padding-top: 12px; border-top: 1px solid #e5e5ea; }
 .history-bar .btn { padding: 6px 14px; font-size: 12px; }
@@ -166,6 +173,11 @@ h1 { font-size: 24px; font-weight: 600; margin-bottom: 8px; }
         <div class="actions">
           <button class="btn btn-primary" id="btnExport" disabled>📥 导出 JSON</button>
           <button class="btn btn-secondary" id="btnReset" disabled>🔄 重置所有替换</button>
+          <div class="undo-bar">
+            <button class="btn-undo" id="btnUndo" disabled title="撤销 (Ctrl+Z)">↩</button>
+            <button class="btn-redo" id="btnRedo" disabled title="重做 (Ctrl+Shift+Z)">↪</button>
+            <span class="undo-info" id="undoInfo"></span>
+          </div>
         </div>
         <div class="history-bar" id="historyBar" style="display:none;">
           <span class="history-info" id="historyInfo"><span class="auto-save-dot"></span>自动保存中</span>
@@ -373,6 +385,7 @@ function handleImageReplace(e, assetId, slotEl) {
 }
 
 function replaceSlotImage(file, assetId, slotEl) {
+  pushUndo('替换图片 ' + assetId);
   const reader = new FileReader();
   reader.onload = (ev) => {
     const base64 = ev.target.result;
@@ -399,6 +412,7 @@ function replaceSlotImage(file, assetId, slotEl) {
 }
 
 function handleRestore(assetId, slotEl) {
+  pushUndo('还原图片 ' + assetId);
   const orig = originalImages[assetId];
   if (!orig) return;
   const asset = lottieData.assets.find(a => a.id === assetId);
@@ -456,6 +470,7 @@ btnExport.addEventListener('click', () => {
 // 重置
 btnReset.addEventListener('click', () => {
   if (!lottieData) return;
+  pushUndo('重置所有替换');
   lottieData.assets.forEach(asset => {
     if (originalImages[asset.id]) {
       asset.p = originalImages[asset.id].p;
@@ -588,8 +603,11 @@ function bindLayerControls(item, idx, layer) {
     renderPreview();
   }
 
-  // 滑块 → 同步输入框 + 应用
+  // 滑块开始拖动时保存撤销点
+  let sliderUndoPushed = false;
   item.querySelectorAll('input[type="range"]').forEach(slider => {
+    slider.addEventListener('mousedown', () => { if (!sliderUndoPushed) { pushUndo('调整图层'); sliderUndoPushed = true; } });
+    slider.addEventListener('mouseup', () => { sliderUndoPushed = false; });
     slider.addEventListener('input', (e) => {
       e.stopPropagation();
       const val = parseFloat(e.target.value);
@@ -696,6 +714,95 @@ function getLayerTypeName(ty) {
   return types[ty] || ('类型' + ty);
 }
 
+
+
+// ========== 撤销/重做功能 ==========
+const MAX_UNDO = 20;
+let undoStack = [];
+let redoStack = [];
+const btnUndo = document.getElementById('btnUndo');
+const btnRedo = document.getElementById('btnRedo');
+const undoInfoEl = document.getElementById('undoInfo');
+
+// 保存当前状态到撤销栈（在关键操作前调用）
+function pushUndo(label) {
+  if (!lottieData) return;
+  // 深拷贝当前 lottieData
+  const snapshot = {
+    data: JSON.parse(JSON.stringify(lottieData)),
+    origImages: JSON.parse(JSON.stringify(originalImages)),
+    replaced: replacedCount,
+    label: label || '操作',
+    time: Date.now()
+  };
+  undoStack.push(snapshot);
+  if (undoStack.length > MAX_UNDO) undoStack.shift();
+  // 新操作清空重做栈
+  redoStack = [];
+  updateUndoUI();
+}
+
+function undo() {
+  if (undoStack.length === 0 || !lottieData) return;
+  // 当前状态压入重做栈
+  redoStack.push({
+    data: JSON.parse(JSON.stringify(lottieData)),
+    origImages: JSON.parse(JSON.stringify(originalImages)),
+    replaced: replacedCount,
+    label: '撤销前',
+    time: Date.now()
+  });
+  // 弹出上一个状态
+  const prev = undoStack.pop();
+  lottieData = prev.data;
+  originalImages = prev.origImages;
+  replacedCount = prev.replaced;
+  updateReplaceCount();
+  initSlots();
+  initLayers();
+  renderPreview();
+  updateUndoUI();
+  showStatus('↩ 已撤销: ' + prev.label, 'info');
+}
+
+function redo() {
+  if (redoStack.length === 0 || !lottieData) return;
+  // 当前状态压入撤销栈
+  undoStack.push({
+    data: JSON.parse(JSON.stringify(lottieData)),
+    origImages: JSON.parse(JSON.stringify(originalImages)),
+    replaced: replacedCount,
+    label: '重做前',
+    time: Date.now()
+  });
+  const next = redoStack.pop();
+  lottieData = next.data;
+  originalImages = next.origImages;
+  replacedCount = next.replaced;
+  updateReplaceCount();
+  initSlots();
+  initLayers();
+  renderPreview();
+  updateUndoUI();
+  showStatus('↪ 已重做', 'info');
+}
+
+function updateUndoUI() {
+  btnUndo.disabled = undoStack.length === 0;
+  btnRedo.disabled = redoStack.length === 0;
+  undoInfoEl.textContent = undoStack.length > 0 ? undoStack.length + ' 步可撤销' : '';
+}
+
+// 按钮事件
+btnUndo.addEventListener('click', undo);
+btnRedo.addEventListener('click', redo);
+
+// 键盘快捷键
+document.addEventListener('keydown', (e) => {
+  if ((e.ctrlKey || e.metaKey) && e.key === 'z' && !e.shiftKey) { e.preventDefault(); undo(); }
+  if ((e.ctrlKey || e.metaKey) && e.key === 'z' && e.shiftKey) { e.preventDefault(); redo(); }
+  if ((e.ctrlKey || e.metaKey) && e.key === 'y') { e.preventDefault(); redo(); }
+});
 
 // ========== 历史记录功能（localStorage 自动保存/恢复） ==========
 const STORAGE_KEY = 'lottie-replacer-session';
