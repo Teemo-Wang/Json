@@ -527,7 +527,7 @@ function handleUpload(type, input) {
   if (!file) return;
   var reader = new FileReader();
   reader.onload = function(e) {
-    var img = new Image();
+    var img = new Image(); img.crossOrigin = "anonymous";
     img.onload = function() {
       bikeImages[type] = img;
       var area = document.getElementById('upload-' + type);
@@ -1296,7 +1296,7 @@ function preloadFixedImages(callback) {
   if (toLoad.length === 0) { callback(); return; }
   var loaded = 0;
   toLoad.forEach(function(src) {
-    var img = new Image();
+    var img = new Image(); img.crossOrigin = "anonymous";
     img.onload = img.onerror = function() {
       fixedImageCache[src] = img;
       loaded++;
@@ -1316,7 +1316,7 @@ var DEFAULT_BIKES = {
 };
 (function loadDefaultBikes() {
   Object.keys(DEFAULT_BIKES).forEach(function(type) {
-    var img = new Image();
+    var img = new Image(); img.crossOrigin = "anonymous";
     img.onload = function() {
       bikeImages[type] = img;
       var area = document.getElementById('upload-' + type);
@@ -1675,7 +1675,7 @@ function handleDetailUpload(idx, input) {
   if (!file) return;
   var reader = new FileReader();
   reader.onload = function(e) {
-    var img = new Image();
+    var img = new Image(); img.crossOrigin = "anonymous";
     img.onload = function() {
       bikeImages['detail' + idx] = img;
       document.getElementById('detail' + idx + '-text').textContent = '✅';
@@ -1691,7 +1691,7 @@ function handleBgUpload(input) {
   if (!file) return;
   var reader = new FileReader();
   reader.onload = function(e) {
-    var img = new Image();
+    var img = new Image(); img.crossOrigin = "anonymous";
     img.onload = function() {
       bikeImages.b1bg = img;
       document.getElementById('b1bg-upload-text').textContent = '✅ 已替换';
@@ -1707,7 +1707,7 @@ function handleB6BgUpload(input) {
   if (!file) return;
   var reader = new FileReader();
   reader.onload = function(e) {
-    var img = new Image();
+    var img = new Image(); img.crossOrigin = "anonymous";
     img.onload = function() {
       bikeImages.b6bg = img;
       document.getElementById('b6bg-upload-text').textContent = '✅ 已替换';
@@ -1723,7 +1723,7 @@ function handleB6BikeUpload(input) {
   if (!file) return;
   var reader = new FileReader();
   reader.onload = function(e) {
-    var img = new Image();
+    var img = new Image(); img.crossOrigin = "anonymous";
     img.onload = function() {
       bikeImages.b6bike = img;
       document.getElementById('b6bike-upload-text').textContent = '✅ 已替换';
@@ -2143,13 +2143,16 @@ function exportOne(idx) {
   var item = materialItems[idx];
   if (!item) return;
   var config = getConfig();
-  // 重新渲染一次确保最新
   var canvas = renderMaterial(item.mat, config, item.params);
-  var link = document.createElement('a');
-  var fileName = item.mat.cat + '_' + item.mat.name + '_' + item.mat.w + 'x' + item.mat.h + '.png';
-  link.download = fileName;
-  link.href = canvas.toDataURL('image/png');
-  link.click();
+  try {
+    var link = document.createElement('a');
+    var fileName = item.mat.cat + '_' + item.mat.name + '_' + item.mat.w + 'x' + item.mat.h + '.png';
+    link.download = fileName;
+    link.href = canvas.toDataURL('image/png');
+    link.click();
+  } catch(e) {
+    alert('导出失败：' + item.mat.name + '\n可能是跨域图片限制，请在本地打开页面导出');
+  }
 }
 
 function exportSingle() {
@@ -2183,13 +2186,19 @@ function exportAll() {
   var zip = new JSZip();
   var total = materialItems.length;
 
+  var skipped = 0;
   materialItems.forEach(function(item, idx) {
-    var canvas = renderMaterial(item.mat, config, item.params);
-    var dataUrl = canvas.toDataURL('image/png');
-    var base64 = dataUrl.split(',')[1];
-    var folderName = CAT_FOLDERS[item.mat.cat] || item.mat.cat;
-    var fileName = item.mat.name + '_' + item.mat.w + 'x' + item.mat.h + '.png';
-    zip.folder(bikeName).folder(folderName).file(fileName, base64, { base64: true });
+    try {
+      var canvas = renderMaterial(item.mat, config, item.params);
+      var dataUrl = canvas.toDataURL('image/png');
+      var base64 = dataUrl.split(',')[1];
+      var folderName = CAT_FOLDERS[item.mat.cat] || item.mat.cat;
+      var fileName = item.mat.name + '_' + item.mat.w + 'x' + item.mat.h + '.png';
+      zip.folder(bikeName).folder(folderName).file(fileName, base64, { base64: true });
+    } catch(e) {
+      console.warn('跳过导出: ' + item.mat.name, e);
+      skipped++;
+    }
   });
 
   zip.generateAsync({ type: 'blob' }, function(metadata) {
@@ -2200,7 +2209,7 @@ function exportAll() {
     link.download = bikeName + '-素材包.zip';
     link.click();
     URL.revokeObjectURL(link.href);
-    info.textContent = '已导出 ' + total + ' 张素材（ZIP）';
+    info.textContent = '已导出 ' + (total - skipped) + ' 张素材（ZIP）' + (skipped ? '，跳过 ' + skipped + ' 张' : '');
   });
 }
 
