@@ -1,0 +1,2234 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>新车素材生成器 - 哈啰两轮</title>
+<style>
+@font-face {
+  font-family: '造字工房元黑体';
+  src: url('fonts/MFYuanHei-Regular.otf') format('opentype');
+  font-weight: normal;
+  font-style: normal;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#f5f5f5;color:#333}
+.header{background:#1976d2;color:#fff;padding:14px 24px;display:flex;align-items:center;gap:12px}
+.header h1{font-size:18px;font-weight:600}
+.badge{background:rgba(255,255,255,.2);padding:2px 8px;border-radius:10px;font-size:12px}
+.app{display:flex;height:calc(100vh - 50px)}
+.sidebar{width:320px;background:#fff;border-right:1px solid #e0e0e0;overflow-y:auto;flex-shrink:0}
+.main{flex:1;overflow-y:auto;padding:20px}
+.panel{border-bottom:1px solid #eee}
+.panel-title{padding:12px 16px;font-size:13px;font-weight:600;color:#666;background:#fafafa;cursor:pointer;user-select:none}
+.panel-title:hover{background:#f0f0f0}
+.panel-body{padding:12px 16px}
+.panel-body.hidden{display:none}
+.upload-area{border:2px dashed #ccc;border-radius:8px;padding:14px;text-align:center;cursor:pointer;transition:all .2s;margin-bottom:8px}
+.upload-area:hover{border-color:#1976d2;background:#e3f2fd}
+.upload-area.has-image{border-color:#4caf50;background:#e8f5e9;padding:6px}
+.upload-area img{max-width:100%;max-height:40px;object-fit:contain}
+.upload-label{font-size:12px;color:#666;margin-bottom:4px;display:block}
+.form-group{margin-bottom:10px}
+.form-group label{display:block;font-size:12px;color:#666;margin-bottom:4px}
+.form-group input{width:100%;padding:6px 10px;border:1px solid #ddd;border-radius:4px;font-size:13px}
+.form-group input[type="color"]{height:32px;padding:2px;cursor:pointer}
+.form-row{display:flex;gap:8px}
+.form-row .form-group{flex:1}
+.btn{padding:8px 16px;border:none;border-radius:4px;font-size:13px;cursor:pointer;transition:all .2s}
+.btn-primary{background:#1976d2;color:#fff}.btn-primary:hover{background:#1565c0}
+.btn-success{background:#4caf50;color:#fff}.btn-success:hover{background:#388e3c}
+.btn-sm{padding:4px 10px;font-size:12px}
+.btn-block{width:100%}
+.btn-group{display:flex;gap:8px;margin-top:10px}
+.material-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px}
+.material-card{background:#fff;border-radius:8px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,.1)}
+.material-card.hidden{display:none}
+.card-header{padding:8px 12px;background:#fafafa;border-bottom:1px solid #eee;display:flex;justify-content:space-between;align-items:center}
+.card-header h3{font-size:12px;font-weight:500}
+.size-tag{font-size:11px;color:#999;background:#f0f0f0;padding:2px 6px;border-radius:3px}
+.cat-tag{font-size:10px;color:#fff;padding:1px 5px;border-radius:3px;margin-right:4px}
+.card-canvas{background:repeating-conic-gradient(#e8e8e8 0% 25%,#fff 0% 50%) 50%/16px 16px;display:flex;align-items:center;justify-content:center;overflow:hidden;min-height:60px;max-height:200px}
+.card-canvas canvas{max-width:100%;max-height:200px}
+.card-actions{padding:6px 12px;display:flex;gap:6px;justify-content:flex-end;border-top:1px solid #eee}
+.category-tabs{display:flex;gap:0;margin-bottom:16px;background:#fff;border-radius:8px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,.1);flex-wrap:wrap}
+.category-tab{padding:10px 14px;font-size:13px;cursor:pointer;border:none;background:none;color:#666;transition:all .2s}
+.category-tab:hover{background:#f0f0f0}
+.category-tab.active{background:#1976d2;color:#fff}
+.modal-overlay{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.5);z-index:100;display:none;align-items:center;justify-content:center}
+.modal-overlay.show{display:flex}
+.modal{background:#fff;border-radius:12px;width:90vw;max-width:900px;max-height:90vh;overflow:hidden;display:flex;flex-direction:column}
+.modal-header{padding:14px 20px;border-bottom:1px solid #eee;display:flex;justify-content:space-between;align-items:center}
+.modal-header h2{font-size:15px}
+.modal-close{background:none;border:none;font-size:20px;cursor:pointer;color:#999}
+.modal-body{flex:1;overflow-y:auto;padding:20px;display:flex;gap:20px}
+.modal-canvas-wrap{flex:1;background:repeating-conic-gradient(#e8e8e8 0% 25%,#fff 0% 50%) 50%/16px 16px;border-radius:8px;display:flex;align-items:center;justify-content:center;min-height:280px}
+.modal-canvas-wrap canvas{max-width:100%;max-height:100%}
+.modal-controls{width:220px;flex-shrink:0}
+.modal-controls{overflow-y:auto;max-height:100%}
+.ctrl-section{border-top:1px solid #eee;margin-top:0}
+.ctrl-section-title{padding:6px 0;font-size:11px;font-weight:600;color:#666;cursor:pointer;user-select:none;display:flex;justify-content:space-between;align-items:center}
+.ctrl-section-title:hover{color:#1976d2}
+.ctrl-section-title::after{content:'▾';font-size:10px;color:#999;transition:transform .2s}
+.ctrl-section-title.collapsed::after{content:'▸'}
+.ctrl-section-body{overflow:hidden;transition:max-height .2s ease}
+.ctrl-section-body.collapsed{max-height:0 !important;padding-top:0;padding-bottom:0}
+.modal-footer{padding:12px 20px;border-top:1px solid #eee;display:flex;justify-content:flex-end;gap:8px}
+.slider-group{margin-bottom:12px}
+.slider-group label{display:flex;justify-content:space-between;font-size:12px;color:#666;margin-bottom:4px}
+.slider-group input[type="range"]{width:100%}
+.tip{background:#fff3e0;border-left:3px solid #ff9800;padding:10px 14px;font-size:12px;color:#e65100;border-radius:0 4px 4px 0;margin-bottom:16px}
+</style>
+</head>
+<body>
+<div class="header"><h1>🚲 新车素材生成器</h1><span class="badge">哈啰两轮</span></div>
+<div class="app">
+<div class="sidebar">
+  <div class="panel">
+    <div class="panel-title" onclick="togglePanel(this)">📷 车辆图片上传</div>
+    <div class="panel-body">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+        <div>
+          <span class="upload-label">左侧视图</span>
+          <div class="upload-area" id="upload-left" style="padding:8px;min-height:50px" onclick="document.getElementById('file-left').click()"><div class="placeholder">点击上传</div></div>
+        </div>
+        <div>
+          <span class="upload-label">右侧视图</span>
+          <div class="upload-area" id="upload-right" style="padding:8px;min-height:50px" onclick="document.getElementById('file-right').click()"><div class="placeholder">点击上传</div></div>
+        </div>
+        <div>
+          <span class="upload-label">45度视图</span>
+          <div class="upload-area" id="upload-angle" style="padding:8px;min-height:50px" onclick="document.getElementById('file-angle').click()"><div class="placeholder">点击上传</div></div>
+        </div>
+        <div>
+          <span class="upload-label">车型Icon</span>
+          <div class="upload-area" id="upload-icon" style="padding:8px;min-height:50px" onclick="document.getElementById('file-icon').click()"><div class="placeholder">点击上传</div></div>
+        </div>
+      </div>
+      <input type="file" id="file-left" accept="image/png" style="display:none" onchange="handleUpload('left',this)">
+      <input type="file" id="file-right" accept="image/png" style="display:none" onchange="handleUpload('right',this)">
+      <input type="file" id="file-angle" accept="image/png" style="display:none" onchange="handleUpload('angle',this)">
+      <input type="file" id="file-icon" accept="image/png" style="display:none" onchange="handleUpload('icon',this)">
+    </div>
+  </div>
+  <div class="panel">
+    <div class="panel-title" onclick="togglePanel(this)">📝 车型信息 & 样式</div>
+    <div class="panel-body">
+      <div class="form-row">
+        <div class="form-group"><label>车型名称</label><input type="text" id="bike-name" value="新车型" oninput="onConfigChange()"></div>
+        <div class="form-group"><label>短文案（≤6字）</label><input type="text" id="bike-slogan" value="骑行好心情" maxlength="6" oninput="onConfigChange()"></div>
+      </div>
+      <div class="form-group" style="display:none"><input type="text" id="bike-bubble" value="超酷"></div>
+      <div style="display:flex;gap:6px;margin-top:8px">
+        <div class="form-group" style="flex:1"><label>主题色</label><input type="color" id="theme-color" value="#1976d2" oninput="onConfigChange()"></div>
+        <div class="form-group" style="flex:1"><label>背景色</label><input type="color" id="bg-color" value="#ffffff" oninput="onConfigChange()"></div>
+        <div class="form-group" style="flex:1"><label>文字色</label><input type="color" id="text-color" value="#333333" oninput="onConfigChange()"></div>
+        <div class="form-group" style="flex:1"><label>副文字</label><input type="color" id="sub-text-color" value="#999999" oninput="onConfigChange()"></div>
+      </div>
+    </div>
+  </div>
+  <div class="panel">
+    <div class="panel-title" onclick="togglePanel(this)">⚡ 批量操作</div>
+    <div class="panel-body">
+      <button class="btn btn-primary btn-block" onclick="generateAll()">🔄 生成全部素材</button>
+      <div class="btn-group"><button class="btn btn-success" style="flex:1" onclick="exportAll()">📦 一键导出全部</button></div>
+      <div id="progress-info" style="margin-top:8px;font-size:12px;color:#666"></div>
+    </div>
+  </div>
+</div>
+<div class="main">
+  <div class="tip">💡 上传车辆三视图 → 点击「生成全部素材」→ 每张可单独「编辑」调整位置/缩放 → 导出</div>
+  <div class="category-tabs" id="cat-tabs">
+    <button class="category-tab active" data-cat="all">全部</button>
+    <button class="category-tab" data-cat="A">A.车辆样式</button>
+    <button class="category-tab" data-cat="B">B.靓车信息</button>
+    <button class="category-tab" data-cat="C">C.发现靓车</button>
+    <button class="category-tab" data-cat="D">D.骑行高光</button>
+    <button class="category-tab" data-cat="E">E.首页场景卡</button>
+  </div>
+  <div class="material-grid" id="material-grid">
+    <div id="empty-state" style="grid-column:1/-1;text-align:center;padding:60px 20px;color:#999">
+      <div style="font-size:48px;margin-bottom:12px">🚲</div>
+      <p>请先上传车辆图片，然后点击「生成全部素材」</p>
+    </div>
+  </div>
+</div>
+</div>
+<div class="modal-overlay" id="edit-modal">
+<div class="modal">
+  <div class="modal-header"><h2 id="modal-title">编辑素材</h2><button class="modal-close" onclick="closeModal()">&times;</button></div>
+  <div class="modal-body">
+    <div class="modal-canvas-wrap"><canvas id="modal-canvas"></canvas></div>
+    <div class="modal-controls">
+      <div id="generic-controls">
+      <div class="slider-group"><label>水平位置 <span id="val-x">50%</span></label><input type="range" id="edit-x" min="0" max="100" value="50" oninput="onEditChange()"></div>
+      <div class="slider-group"><label>垂直位置 <span id="val-y">50%</span></label><input type="range" id="edit-y" min="0" max="100" value="50" oninput="onEditChange()"></div>
+      <div class="slider-group"><label>缩放 <span id="val-scale">100%</span></label><input type="range" id="edit-scale" min="20" max="200" value="100" oninput="onEditChange()"></div>
+      <div class="slider-group"><label>旋转 <span id="val-rotate">0°</span></label><input type="range" id="edit-rotate" min="-180" max="180" value="0" oninput="onEditChange()"></div>
+      <div class="form-group"><label>背景色</label><div style="display:flex;gap:6px;align-items:center"><input type="color" id="edit-bg-picker" value="#ffffff" style="width:32px;height:32px;padding:0;border:1px solid #ddd;border-radius:4px;cursor:pointer;flex-shrink:0" oninput="onEditPickerChange()"><input type="text" id="edit-bg" value="#ffffff" maxlength="7" style="font-family:monospace;font-size:13px" oninput="onEditBgInput()"></div></div>
+      <div class="form-group" style="margin-top:8px"><label><input type="checkbox" id="edit-transparent" onchange="onEditChange()"> 透明背景</label></div>
+      <div id="text-edit-controls" style="display:none;border-top:1px solid #eee;padding-top:10px;margin-top:10px">
+        <div class="form-group"><label>文案内容</label><input type="text" id="edit-text" value="" style="font-size:13px" oninput="onEditChange()"></div>
+        <div id="text-grad-controls" style="display:none;margin-top:8px">
+          <div class="form-group"><label>文字渐变-顶部</label><div style="display:flex;gap:6px;align-items:center"><input type="color" id="edit-text-grad-top" value="#5ec8e6" style="width:32px;height:32px;padding:0;border:1px solid #ddd;border-radius:4px;cursor:pointer" oninput="onEditChange()"><input type="text" id="edit-text-grad-top-text" value="#5ec8e6" maxlength="7" style="font-family:monospace;font-size:13px;width:80px" oninput="onTextGradTextChange('top')"></div></div>
+          <div class="form-group"><label>文字渐变-底部</label><div style="display:flex;gap:6px;align-items:center"><input type="color" id="edit-text-grad-bottom" value="#1a1a1a" style="width:32px;height:32px;padding:0;border:1px solid #ddd;border-radius:4px;cursor:pointer" oninput="onEditChange()"><input type="text" id="edit-text-grad-bottom-text" value="#1a1a1a" maxlength="7" style="font-family:monospace;font-size:13px;width:80px" oninput="onTextGradTextChange('bottom')"></div></div>
+        </div>
+      </div>
+      </div>
+      <div id="layered-controls" style="display:none">
+        <div id="replaceable-bg-upload" style="display:none;margin-bottom:4px">
+          <div class="form-group"><label>替换背景图</label>
+            <div class="upload-area" style="padding:6px;cursor:pointer" onclick="document.getElementById('file-b1bg').click()">
+              <div id="b1bg-upload-text" style="font-size:12px;color:#666">点击上传新背景</div>
+            </div>
+            <input type="file" id="file-b1bg" accept="image/png" style="display:none" onchange="handleBgUpload(this)">
+          </div>
+        </div>
+        <div id="detail-upload-controls" style="display:none;margin-bottom:4px">
+          <div class="ctrl-section"><div class="ctrl-section-title" onclick="toggleCtrlSection(this)">车辆细节图（3张）</div><div class="ctrl-section-body">
+          <div style="display:flex;gap:6px">
+            <div style="flex:1">
+              <div class="upload-area" style="padding:4px;min-height:36px;cursor:pointer" onclick="document.getElementById('file-detail1').click()"><div id="detail1-text" style="font-size:10px;color:#666">左</div></div>
+              <input type="file" id="file-detail1" accept="image/*" style="display:none" onchange="handleDetailUpload(1,this)">
+              <div style="margin-top:2px"><input type="range" id="d1-x" min="-50" max="150" value="50" style="width:100%" oninput="onEditChange()"><input type="range" id="d1-y" min="0" max="100" value="50" style="width:100%" oninput="onEditChange()"><input type="range" id="d1-s" min="1" max="200" value="100" style="width:100%" oninput="onEditChange()"></div>
+            </div>
+            <div style="flex:1">
+              <div class="upload-area" style="padding:4px;min-height:36px;cursor:pointer" onclick="document.getElementById('file-detail2').click()"><div id="detail2-text" style="font-size:10px;color:#666">中</div></div>
+              <input type="file" id="file-detail2" accept="image/*" style="display:none" onchange="handleDetailUpload(2,this)">
+              <div style="margin-top:2px"><input type="range" id="d2-x" min="-50" max="150" value="50" style="width:100%" oninput="onEditChange()"><input type="range" id="d2-y" min="0" max="100" value="50" style="width:100%" oninput="onEditChange()"><input type="range" id="d2-s" min="1" max="200" value="100" style="width:100%" oninput="onEditChange()"></div>
+            </div>
+            <div style="flex:1">
+              <div class="upload-area" style="padding:4px;min-height:36px;cursor:pointer" onclick="document.getElementById('file-detail3').click()"><div id="detail3-text" style="font-size:10px;color:#666">右</div></div>
+              <input type="file" id="file-detail3" accept="image/*" style="display:none" onchange="handleDetailUpload(3,this)">
+              <div style="margin-top:2px"><input type="range" id="d3-x" min="-50" max="150" value="50" style="width:100%" oninput="onEditChange()"><input type="range" id="d3-y" min="0" max="100" value="50" style="width:100%" oninput="onEditChange()"><input type="range" id="d3-s" min="1" max="200" value="100" style="width:100%" oninput="onEditChange()"></div>
+            </div>
+          </div>
+          </div></div>
+        </div>
+        <div class="ctrl-section"><div class="ctrl-section-title" onclick="toggleCtrlSection(this)">🎨 渐变色</div><div class="ctrl-section-body">
+        <div style="display:flex;gap:4px;margin-bottom:6px">
+          <div class="form-group" style="flex:1"><label style="font-size:10px">顶部</label><div style="display:flex;gap:4px;align-items:center"><input type="color" id="edit-grad-top" value="#198eff" style="width:28px;height:22px;padding:0;border:1px solid #ddd;border-radius:3px;cursor:pointer" oninput="onEditChange()"><input type="text" id="edit-grad-top-text" value="#198eff" maxlength="7" style="font-family:monospace;font-size:11px;width:70px" oninput="onGradTextChange('top')"></div></div>
+          <div id="grad-mid-section" class="form-group" style="flex:1;display:none"><label style="font-size:10px">中间</label><div style="display:flex;gap:4px;align-items:center"><input type="color" id="edit-grad-mid" value="#ffffff" style="width:28px;height:22px;padding:0;border:1px solid #ddd;border-radius:3px;cursor:pointer" oninput="onEditChange()"><input type="text" id="edit-grad-mid-text" value="#ffffff" maxlength="7" style="font-family:monospace;font-size:11px;width:70px" oninput="onGradTextChange('mid')"></div></div>
+          <div id="grad-mid2-section" class="form-group" style="flex:1;display:none"><label style="font-size:10px">中间2</label><div style="display:flex;gap:4px;align-items:center"><input type="color" id="edit-grad-mid2" value="#ffffff" style="width:28px;height:22px;padding:0;border:1px solid #ddd;border-radius:3px;cursor:pointer" oninput="onEditChange()"><input type="text" id="edit-grad-mid2-text" value="#ffffff" maxlength="7" style="font-family:monospace;font-size:11px;width:70px" oninput="onGradTextChange('mid2')"></div></div>
+          <div class="form-group" style="flex:1"><label style="font-size:10px">底部</label><div style="display:flex;gap:4px;align-items:center"><input type="color" id="edit-grad-bottom" value="#a7d4ff" style="width:28px;height:22px;padding:0;border:1px solid #ddd;border-radius:3px;cursor:pointer" oninput="onEditChange()"><input type="text" id="edit-grad-bottom-text" value="#a7d4ff" maxlength="7" style="font-family:monospace;font-size:11px;width:70px" oninput="onGradTextChange('bottom')"></div></div>
+        </div>
+        </div></div>
+        <div id="bike-view-controls" style="display:none">
+          <div class="ctrl-section"><div class="ctrl-section-title" onclick="toggleCtrlSection(this)">🚲 车辆图</div><div class="ctrl-section-body">
+          <div style="display:flex;gap:6px;margin-bottom:8px">
+            <div style="flex:1">
+              <div class="upload-area" style="padding:4px;min-height:30px;cursor:pointer" onclick="document.getElementById('file-b6bg').click()"><div id="b6bg-upload-text" style="font-size:10px;color:#666">替换背景图</div></div>
+              <input type="file" id="file-b6bg" accept="image/*" style="display:none" onchange="handleB6BgUpload(this)">
+            </div>
+            <div style="flex:1">
+              <div class="upload-area" style="padding:4px;min-height:30px;cursor:pointer" onclick="document.getElementById('file-b6bike').click()"><div id="b6bike-upload-text" style="font-size:10px;color:#666">替换车辆图</div></div>
+              <input type="file" id="file-b6bike" accept="image/*" style="display:none" onchange="handleB6BikeUpload(this)">
+            </div>
+          </div>
+          <div style="display:flex;gap:6px">
+            <div class="slider-group" style="flex:1;margin-bottom:2px"><label style="font-size:10px">X <span id="val-bv-x">52%</span></label><input type="range" id="edit-bv-x" min="0" max="100" value="52" oninput="onEditChange()"></div>
+            <div class="slider-group" style="flex:1;margin-bottom:2px"><label style="font-size:10px">Y <span id="val-bv-y">58%</span></label><input type="range" id="edit-bv-y" min="0" max="100" value="58" oninput="onEditChange()"></div>
+          </div>
+          <div style="display:flex;gap:6px">
+            <div class="slider-group" style="flex:1;margin-bottom:2px"><label style="font-size:10px">缩放 <span id="val-bv-scale">95%</span></label><input type="range" id="edit-bv-scale" min="10" max="200" value="95" oninput="onEditChange()"></div>
+            <div class="slider-group" style="flex:1;margin-bottom:2px"><label style="font-size:10px">旋转 <span id="val-bv-rotate">0°</span></label><input type="range" id="edit-bv-rotate" min="-180" max="180" value="0" oninput="onEditChange()"></div>
+          </div>
+          </div></div>
+        </div>
+        <div id="solid-color-section" style="display:none;margin-top:2px">
+          <div style="font-size:11px;font-weight:600;color:#666;margin-bottom:4px">图层纯色</div>
+          <div style="display:flex;gap:4px;align-items:center">
+            <input type="color" id="edit-solid-color" value="#31384b" style="width:28px;height:22px;padding:0;border:1px solid #ddd;border-radius:3px;cursor:pointer" oninput="onEditChange()">
+            <input type="text" id="edit-solid-color-text" value="#31384b" maxlength="7" style="font-family:monospace;font-size:11px;width:70px" oninput="onSolidColorTextChange()">
+          </div>
+        </div>
+        <div id="c1-text-controls" style="display:none">
+          <div class="ctrl-section"><div class="ctrl-section-title" onclick="toggleCtrlSection(this)">📝 发现靓车文案</div><div class="ctrl-section-body">
+          <div class="form-group"><label style="font-size:10px">副标题</label><input type="text" id="edit-c1-sub" value="「舒适圈」系列" style="font-size:11px" oninput="onEditChange()"></div>
+          <div class="form-group" style="margin-top:4px"><label style="font-size:10px">车型名</label><input type="text" id="edit-c1-main" value="冰川号" style="font-size:11px" oninput="onEditChange()"></div>
+          <div style="display:flex;gap:4px;align-items:end;margin-top:4px">
+            <div class="form-group" style="flex:1"><label style="font-size:10px">文字颜色</label><div style="display:flex;gap:4px;align-items:center"><input type="color" id="edit-c1-main-color" value="#333333" style="width:24px;height:20px;padding:0;border:1px solid #ddd;border-radius:3px;cursor:pointer" oninput="onEditChange()"><input type="text" id="edit-c1-main-color-text" value="#333333" maxlength="7" style="font-family:monospace;font-size:11px;width:65px" oninput="onC1ColorTextChange('main')"></div></div>
+          </div>
+          <div style="display:flex;gap:6px;margin-top:6px">
+            <div class="slider-group" style="flex:1;margin-bottom:2px"><label style="font-size:10px">X <span id="val-c1-tx">50%</span></label><input type="range" id="edit-c1-tx" min="0" max="100" value="50" oninput="onEditChange()"></div>
+            <div class="slider-group" style="flex:1;margin-bottom:2px"><label style="font-size:10px">Y <span id="val-c1-ty">55%</span></label><input type="range" id="edit-c1-ty" min="0" max="100" value="55" oninput="onEditChange()"></div>
+          </div>
+          <div class="slider-group" style="margin-top:4px"><label style="font-size:10px">缩放 <span id="val-c1-ts">100%</span></label><input type="range" id="edit-c1-ts" min="30" max="200" value="100" oninput="onEditChange()"></div>
+          </div></div>
+        </div>
+        <div id="icon-controls-section">
+          <div class="ctrl-section"><div class="ctrl-section-title" onclick="toggleCtrlSection(this)">🎯 Icon</div><div class="ctrl-section-body">
+          <div style="display:flex;gap:6px">
+            <div class="slider-group" style="flex:1;margin-bottom:2px"><label style="font-size:10px">X <span id="val-icon-x">50%</span></label><input type="range" id="edit-icon-x" min="-50" max="150" value="50" oninput="onEditChange()"></div>
+            <div class="slider-group" style="flex:1;margin-bottom:2px"><label style="font-size:10px">Y <span id="val-icon-y">45%</span></label><input type="range" id="edit-icon-y" min="-50" max="150" value="45" oninput="onEditChange()"></div>
+          </div>
+          <div style="display:flex;gap:6px">
+            <div class="slider-group" style="flex:1;margin-bottom:2px"><label style="font-size:10px">缩放 <span id="val-icon-scale">55%</span></label><input type="range" id="edit-icon-scale" min="1" max="100" value="55" oninput="onEditChange()"></div>
+            <div class="slider-group" style="flex:1;margin-bottom:2px"><label style="font-size:10px">旋转 <span id="val-icon-rotate">0°</span></label><input type="range" id="edit-icon-rotate" min="-180" max="180" value="0" oninput="onEditChange()"></div>
+          </div>
+          </div></div>
+        </div>
+        <div id="b1-text-controls" style="display:none">
+          <div class="ctrl-section"><div class="ctrl-section-title" onclick="toggleCtrlSection(this)">📝 顶部文案</div><div class="ctrl-section-body">
+          <div class="form-row"><div class="form-group"><label>前缀</label><input type="text" id="edit-b1-prefix" value="恭喜你 骑到" style="font-size:11px" oninput="onEditChange()"></div><div class="form-group" style="width:50px;flex:none"><label>后缀</label><input type="text" id="edit-b1-suffix" value="啦" style="font-size:11px" oninput="onEditChange()"></div></div>
+          <div style="display:flex;gap:4px;margin-top:4px;align-items:end">
+            <div class="form-group" style="flex:1"><label style="font-size:10px">字号</label><input type="number" id="edit-b1-fs" value="28" min="6" max="60" style="font-size:11px;width:100%" oninput="onEditChange()"></div>
+            <div class="form-group" style="flex:1"><label style="font-size:10px">特殊</label><input type="number" id="edit-b1-sfs" value="34" min="6" max="60" style="font-size:11px;width:100%" oninput="onEditChange()"></div>
+            <div class="form-group" style="flex:1"><label style="font-size:10px">描边</label><input type="number" id="edit-b1-sw" value="6" min="0" max="20" style="font-size:11px;width:100%" oninput="onEditChange()"></div>
+          </div>
+          <div style="display:flex;gap:4px;margin-top:4px;align-items:end">
+            <div class="form-group" style="flex:1"><label style="font-size:10px">文字</label><input type="color" id="edit-b1-tc" value="#1a9de0" style="width:100%;height:24px;padding:0;border:1px solid #ddd;border-radius:4px;cursor:pointer" oninput="onEditChange()"></div>
+            <div class="form-group" style="flex:1"><label style="font-size:10px">车型</label><input type="color" id="edit-b1-spc" value="#0076ff" style="width:100%;height:24px;padding:0;border:1px solid #ddd;border-radius:4px;cursor:pointer" oninput="onEditChange()"></div>
+            <div class="form-group" style="flex:1"><label style="font-size:10px">描边</label><input type="color" id="edit-b1-sc" value="#ffffff" style="width:100%;height:24px;padding:0;border:1px solid #ddd;border-radius:4px;cursor:pointer" oninput="onEditChange()"></div>
+          </div>
+          <div class="slider-group" style="margin-top:4px"><label style="font-size:10px">X <span id="val-b1-tx">18%</span></label><input type="range" id="edit-b1-tx" min="0" max="100" value="18" oninput="onEditChange()"></div>
+          <div class="slider-group"><label style="font-size:10px">Y <span id="val-b1-ty">5%</span></label><input type="range" id="edit-b1-ty" min="0" max="30" value="5" oninput="onEditChange()"></div>
+          </div></div>
+        </div>
+        <div id="d1-text-controls" style="display:none">
+          <div class="ctrl-section"><div class="ctrl-section-title" onclick="toggleCtrlSection(this)">✨ 高光文案</div><div class="ctrl-section-body">
+          <div class="form-group"><label style="font-size:10px">文案内容</label><input type="text" id="edit-d1-text" value="首次骑到" style="font-size:11px" oninput="onEditChange()"></div>
+          <div style="display:flex;gap:4px;margin-top:4px;align-items:end">
+            <div class="form-group" style="flex:1"><label style="font-size:10px">文字色</label><div style="display:flex;gap:4px;align-items:center"><input type="color" id="edit-d1-tc" value="#ffffff" style="width:24px;height:20px;padding:0;border:1px solid #ddd;border-radius:3px;cursor:pointer" oninput="onEditChange()"><input type="text" id="edit-d1-tc-text" value="#ffffff" maxlength="7" style="font-family:monospace;font-size:11px;width:65px" oninput="onD1ColorTextChange('tc')"></div></div>
+            <div class="form-group" style="flex:1"><label style="font-size:10px">描边色</label><div style="display:flex;gap:4px;align-items:center"><input type="color" id="edit-d1-sc" value="#0eb5fe" style="width:24px;height:20px;padding:0;border:1px solid #ddd;border-radius:3px;cursor:pointer" oninput="onEditChange()"><input type="text" id="edit-d1-sc-text" value="#0eb5fe" maxlength="7" style="font-family:monospace;font-size:11px;width:65px" oninput="onD1ColorTextChange('sc')"></div></div>
+          </div>
+          <div style="display:flex;gap:4px;margin-top:4px;align-items:end">
+            <div class="form-group" style="flex:1"><label style="font-size:10px">字号</label><input type="number" id="edit-d1-fs" value="62" min="10" max="120" style="font-size:11px;width:100%" oninput="onEditChange()"></div>
+            <div class="form-group" style="flex:1"><label style="font-size:10px">描边宽</label><input type="number" id="edit-d1-sw" value="8" min="0" max="30" style="font-size:11px;width:100%" oninput="onEditChange()"></div>
+          </div>
+          <div style="display:flex;gap:6px;margin-top:6px">
+            <div class="slider-group" style="flex:1;margin-bottom:2px"><label style="font-size:10px">X <span id="val-d1-tx">25%</span></label><input type="range" id="edit-d1-tx" min="0" max="100" value="25" oninput="onEditChange()"></div>
+            <div class="slider-group" style="flex:1;margin-bottom:2px"><label style="font-size:10px">Y <span id="val-d1-ty">8%</span></label><input type="range" id="edit-d1-ty" min="0" max="50" value="8" oninput="onEditChange()"></div>
+          </div>
+          <div style="display:flex;gap:6px">
+            <div class="slider-group" style="flex:1;margin-bottom:2px"><label style="font-size:10px">缩放 <span id="val-d1-ts">100%</span></label><input type="range" id="edit-d1-ts" min="30" max="200" value="100" oninput="onEditChange()"></div>
+            <div class="slider-group" style="flex:1;margin-bottom:2px"><label style="font-size:10px">旋转 <span id="val-d1-tr">0°</span></label><input type="range" id="edit-d1-tr" min="-180" max="180" value="0" oninput="onEditChange()"></div>
+          </div>
+          </div></div>
+        </div>
+        <div id="d3-text-controls" style="display:none">
+          <div class="ctrl-section"><div class="ctrl-section-title" onclick="toggleCtrlSection(this)">✨ 高光分享文案</div><div class="ctrl-section-body">
+          <div class="form-group"><label style="font-size:10px">上行文案</label><input type="text" id="edit-d3-top" value="首次骑到" style="font-size:11px" oninput="onEditChange()"></div>
+          <div class="form-group" style="margin-top:4px"><label style="font-size:10px">下行文案</label><input type="text" id="edit-d3-bot" value="哈啰「冰川号」" style="font-size:11px" oninput="onEditChange()"></div>
+          <div style="display:flex;gap:4px;margin-top:4px;align-items:end">
+            <div class="form-group" style="flex:1"><label style="font-size:10px">上行字号</label><input type="number" id="edit-d3-tfs" value="36" min="10" max="120" style="font-size:11px;width:100%" oninput="onEditChange()"></div>
+            <div class="form-group" style="flex:1"><label style="font-size:10px">下行字号</label><input type="number" id="edit-d3-bfs" value="72" min="10" max="160" style="font-size:11px;width:100%" oninput="onEditChange()"></div>
+          </div>
+          <div style="display:flex;gap:4px;margin-top:4px;align-items:end">
+            <div class="form-group" style="flex:1"><label style="font-size:10px">文字色</label><div style="display:flex;gap:4px;align-items:center"><input type="color" id="edit-d3-tc" value="#ffffff" style="width:24px;height:20px;padding:0;border:1px solid #ddd;border-radius:3px;cursor:pointer" oninput="onEditChange()"><input type="text" id="edit-d3-tc-text" value="#ffffff" maxlength="7" style="font-family:monospace;font-size:11px;width:65px" oninput="onD3ColorTextChange()"></div></div>
+          </div>
+          <div style="display:flex;gap:6px;margin-top:6px">
+            <div class="slider-group" style="flex:1;margin-bottom:2px"><label style="font-size:10px">X <span id="val-d3-tx">50%</span></label><input type="range" id="edit-d3-tx" min="0" max="100" value="50" oninput="onEditChange()"></div>
+            <div class="slider-group" style="flex:1;margin-bottom:2px"><label style="font-size:10px">Y <span id="val-d3-ty">16%</span></label><input type="range" id="edit-d3-ty" min="0" max="50" value="16" oninput="onEditChange()"></div>
+          </div>
+          <div class="slider-group"><label style="font-size:10px">缩放 <span id="val-d3-ts">100%</span></label><input type="range" id="edit-d3-ts" min="30" max="200" value="100" oninput="onEditChange()"></div>
+          </div></div>
+        </div>
+        <div id="e1-text-controls" style="display:none">
+          <div class="ctrl-section"><div class="ctrl-section-title" onclick="toggleCtrlSection(this)">🏷️ 场景卡文案</div><div class="ctrl-section-body">
+          <div class="form-row">
+            <div class="form-group"><label style="font-size:10px">前缀</label><input type="text" id="edit-e1-prefix" value="辆" style="font-size:11px;width:40px" oninput="onEditChange()"></div>
+            <div class="form-group" style="flex:1"><label style="font-size:10px">车型名</label><input type="text" id="edit-e1-name" value="" style="font-size:11px" oninput="onEditChange()"></div>
+          </div>
+          <div style="display:flex;gap:4px;margin-top:4px">
+            <div class="form-group" style="flex:1"><label style="font-size:10px">车型名色</label><div style="display:flex;gap:4px;align-items:center"><input type="color" id="edit-e1-name-color" value="#3db9ed" style="width:24px;height:20px;padding:0;border:1px solid #ddd;border-radius:3px;cursor:pointer" oninput="onEditChange()"><input type="text" id="edit-e1-name-color-text" value="#3db9ed" maxlength="7" style="font-family:monospace;font-size:11px;width:65px" oninput="onE1ColorTextChange()"></div></div>
+          </div>
+          </div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="modal-footer">
+    <button class="btn" onclick="closeModal()">取消</button>
+    <button class="btn btn-primary" onclick="applyEdit()">应用修改</button>
+    <button class="btn btn-success" onclick="exportSingle()">导出此素材</button>
+  </div>
+</div>
+</div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<script id="app-script">
+// ========== 全局状态 ==========
+var bikeImages = { left: null, right: null, angle: null, icon: null, b1bg: null, detail1: null, detail2: null, detail3: null };
+var materialItems = [];
+var currentEditIndex = -1;
+var currentFilter = 'all';
+
+// ========== 素材定义（来自工作手册） ==========
+var MATERIALS = [
+  // A. 车辆样式配置 - 地图icon
+  { id:'a1', cat:'A', name:'车型icon（未选中）', w:180, h:180, view:null, fit:'layered', bg:'transparent', hasText:false,
+    defaultIconY:50, defaultIconScale:46, colorGroup:'icon-gradient',
+    layers:[
+      { src:'Bicycle Page/A/A-icon/180*180/1.png', type:'fixed' },
+      { src:'Bicycle Page/A/A-icon/180*180/2.png', type:'tinted-gradient', gradientTop:'#198eff', gradientBottom:'#a7d4ff' },
+      { src:null, type:'icon-view' }
+    ]
+  },
+  { id:'a2', cat:'A', name:'车型icon（多端-未选中）', w:56, h:56, view:'icon', fit:'contain', bg:'transparent', hasText:false },
+  { id:'a3', cat:'A', name:'车型icon（选中）', w:138, h:165, view:null, fit:'layered', bg:'transparent', hasText:false,
+    defaultIconY:43, defaultIconScale:85, colorGroup:'icon-gradient',
+    layers:[
+      { src:'Bicycle Page/A/A-icon/138*165/1.png', type:'fixed' },
+      { src:'Bicycle Page/A/A-icon/138*165/2.png', type:'tinted-gradient', gradientTop:'#198eff', gradientBottom:'#a7d4ff' },
+      { src:null, type:'icon-view' }
+    ]
+  },
+  { id:'a4', cat:'A', name:'车型icon（多端-选中）', w:210, h:210, view:null, fit:'layered', bg:'transparent', hasText:false,
+    colorGroup:'icon-gradient',
+    layers:[
+      { src:'Bicycle Page/A/A-icon/210*210/1.png', type:'fixed' },
+      { src:'Bicycle Page/A/A-icon/210*210/2.png', type:'tinted-gradient', gradientTop:'#198eff', gradientBottom:'#a7d4ff' },
+      { src:null, type:'icon-view' }
+    ]
+  },
+  // A. 车辆图片卡片
+  { id:'a5', cat:'A', name:'车辆静态-原生', w:246, h:216, view:'left', fit:'bike-card', bg:'white', hasText:false, bikeScale:0.88, bikeY:52 },
+  { id:'a6', cat:'A', name:'车辆静态多端', w:360, h:360, view:'angle', fit:'bike-card', bg:'white', hasText:false, bikeScale:0.92, bikeY:53 },
+  // A. 车辆报障
+  { id:'a7', cat:'A', name:'车辆报障通用图', w:729, h:348, view:null, fit:'fixed-image', bg:'transparent', hasText:false, fixedImage:'Bicycle Page/729x348.png' },
+  // A. 卡片展示车型
+  { id:'a8', cat:'A', name:'车型标题', w:200, h:48, view:null, fit:null, bg:'transparent', hasText:true, textType:'title', italic:true, textGradient:true, textGradTop:'#5ec8e6', textGradBottom:'#1a1a1a' },
+  { id:'a9', cat:'A', name:'卡片背景', w:732, h:220, view:null, fit:'tinted-image', bg:'theme', hasText:false, fixedImage:'Bicycle Page/732×220/732x220 背景.png', defaultTint:'#3aacdc' },
+  // B. 靓车信息配置
+  { id:'b1', cat:'B', name:'靓车卡片背景', w:780, h:1224, view:null, fit:'layered', bg:'transparent', hasText:false,
+    defaultIconX:10, defaultIconY:7, defaultIconScale:13,
+    b1Text:{ prefix:'恭喜你骑到', suffix:'啦', fontSize:42, specialFontSize:52, strokeWidth:11, strokeColor:'#ffffff', shadowColor:'rgba(0,0,0,0.3)', shadowBlur:4, textColor:'#1a1a1a', specialColor:'#0076ff', textX:18, textY:9 },
+    layers:[
+      { src:'Bicycle Page/B/780*1224/1.png', type:'replaceable-bg', viewKey:'b1bg' },
+      { src:null, type:'icon-view' },
+      { type:'b1-text' }
+    ]
+  },
+  { id:'b2', cat:'B', name:'靓车车辆图', w:592, h:432, view:'right', fit:'contain', bg:'transparent', hasText:false },
+  { id:'b3', cat:'B', name:'靓车车型icon', w:56, h:56, view:'icon', fit:'contain', bg:'transparent', hasText:false },
+  { id:'b4', cat:'B', name:'车型卖点图', w:736, h:314, view:null, fit:'layered', bg:'transparent', hasText:false,
+    detailSlots:3,
+    detailMasks:[
+      'Bicycle Page/B/B-736*314/1-左.png',
+      'Bicycle Page/B/B-736*314/1-中.png',
+      'Bicycle Page/B/B-736*314/1-右.png'
+    ],
+    layers:[
+      { src:'Bicycle Page/B/B-736*314/1.png', type:'tinted-gradient', gradientTop:'#9ee5ff', gradientBottom:'#ffffff', gradientEnd:0.7 },
+      { type:'detail-masked' },
+    ]
+  },
+  { id:'b5', cat:'B', name:'价格说明层', w:736, h:84, view:null, fit:'layered', bg:'transparent', hasText:false,
+    colorGroup:'price-gradient',
+    layers:[
+      { src:'Bicycle Page/B/B-736*84/1.png', type:'tinted-gradient', gradientTop:'#9ee5ff', gradientBottom:'#ffffff' }
+    ]
+  },
+  // B. 发现靓车频道列表
+  { id:'b6', cat:'B', name:'靓车卡片图', w:1098, h:930, view:null, fit:'layered', bg:'transparent', hasText:false,
+    colorGroup:'b6-gradient',
+    layers:[
+      { src:'Bicycle Page/B/B-1098*930/1.png', type:'tinted-gradient', gradientTop:'#9ee5ff', gradientMid:'#ffffff', gradientMidPos:0.25, gradientBottom:'#ffffff', replaceKey:'b6bg' },
+      { src:'Bicycle Page/B/B-1098*930/1-1.png', type:'tinted-solid', tintColor:'#31384b' },
+      { src:null, type:'bike-view', viewKey:'right', defaultX:50, defaultY:36, defaultScale:76, replaceKey:'b6bike' }
+    ]
+  },
+  { id:'b7', cat:'B', name:'靓车简称', w:600, h:165, view:null, fit:'layered', bg:'transparent', hasText:false,
+    defaultIconX:10, defaultIconY:25, defaultIconScale:10,
+    layers:[
+      { src:'Bicycle Page/B/B-600*165/1.png', type:'tinted-gradient', gradientTop:'#9ee5ff', gradientBottom:'#ffffff' },
+      { src:null, type:'icon-view' }
+    ]
+  },
+  { id:'b8', cat:'B', name:'靓车投票小图', w:531, h:762, view:null, fit:'layered', bg:'transparent', hasText:false,
+    layers:[
+      { src:'Bicycle Page/B/B-531*762/1.png', type:'tinted-gradient', gradientTop:'#9ee5ff', gradientMid:'#ffffff', gradientMidPos:0.4, gradientBottom:'#ffffff' },
+      { src:null, type:'bike-view', viewKey:'right', defaultX:50, defaultY:26, defaultScale:47 }
+    ]
+  },
+  // B. 车辆详情
+  // B. 车辆详情（已移除）
+  // C. 发现靓车活动页头图
+  { id:'c1', cat:'C', name:'发现靓车-主图', w:1170, h:1527, view:null, fit:'layered', bg:'transparent', hasText:false,
+    c1Text:{ subText:'「舒适圈」系列', mainText:'冰川号', subColor:'#63717e', mainColor:'#63717e', textX:60, textY:46, textScale:75 },
+    layers:[
+      { src:'Bicycle Page/C/C-1170*1527/发现靓车-主图 1170x1527 拷贝.png', type:'replaceable-bg', viewKey:'c1bg' },
+      { src:null, type:'bike-view', viewKey:'right', defaultX:50, defaultY:53, defaultScale:55 },
+      { type:'c1-text' }
+    ]
+  },
+  { id:'c2', cat:'C', name:'营销标题', w:477, h:68, view:null, fit:null, bg:'transparent', hasText:true, textType:'marketingTitle' },
+  // D. 骑行高光
+  { id:'d1', cat:'D', name:'高光背景卡', w:1098, h:1272, view:null, fit:'layered', bg:'transparent', hasText:false,
+    defaultIconX:12, defaultIconY:8, defaultIconScale:18,
+    d1Text:{ text:'首次骑到', fontSize:62, textColor:'#ffffff', strokeColor:'#0eb5fe', strokeWidth:8, textX:25, textY:8 },
+    layers:[
+      { src:'Bicycle Page/D/D-1098*1272/1.png', type:'tinted-solid', tintColor:'#0eb5fe', bevelEmboss:true },
+      { src:'Bicycle Page/D/D-1098*1272/2.png', type:'tinted-gradient', gradientTop:'#7de2ff', gradientMid:'#7dd0ff', gradientMidPos:0.10, gradientMid2:'#d3faff', gradientMid2Pos:0.42, gradientBottom:'#ffffff', whiteStroke:true },
+      { src:'Bicycle Page/D/D-1098*1272/3.png', type:'replaceable-bg', viewKey:'d1top' },
+      { src:null, type:'icon-view' },
+      { type:'d1-text' }
+    ]
+  },
+  { id:'d2', cat:'D', name:'高光车辆', w:1098, h:651, view:null, fit:'layered', bg:'transparent', hasText:false,
+    defaultIconX:76, defaultIconY:11, defaultIconScale:16,
+    layers:[
+      { src:null, type:'bike-view', viewKey:'right', defaultX:49, defaultY:50, defaultScale:84 },
+      { src:'Bicycle Page/D/D-1098*651/2.png', type:'tinted-icon', tintColor:'#52b0ff', defaultX:76, defaultY:11, defaultScale:16, innerGlow:true }
+    ]
+  },
+  { id:'d3', cat:'D', name:'高光分享', w:1098, h:1500, view:null, fit:'layered', bg:'transparent', hasText:false,
+    d3Text:{ topText:'首次骑到', bottomText:'哈啰「冰川号」', topFontSize:42, bottomFontSize:88, textColor:'#ffffff', textX:50, textY:10 },
+    layers:[
+      { src:'Bicycle Page/D/D-1098*1500/1.png', type:'tinted-gradient', gradientTop:'#77c5f2', gradientMid:'#cff4fe', gradientMidPos:0.5, gradientBottom:'#77c5f2' },
+      { type:'d3-text' },
+      { src:null, type:'bike-view', viewKey:'right', defaultX:49, defaultY:32, defaultScale:46 }
+    ]
+  },
+  // E. 首页场景卡
+  { id:'e1', cat:'E', name:'车型名称', w:346, h:60, view:null, fit:'layered', bg:'transparent', hasText:false,
+    e1Text:{ prefix:'辆', prefixColor:'#000000', nameColor:'#3db9ed' },
+    layers:[
+      { type:'e1-text' }
+    ]
+  },
+];
+
+var CAT_COLORS = { A:'#1976d2', B:'#e91e63', C:'#ff9800', D:'#9c27b0', E:'#4caf50', F:'#00bcd4' };
+
+// ========== 工具函数 ==========
+function getConfig() {
+  return {
+    name: document.getElementById('bike-name').value,
+    slogan: document.getElementById('bike-slogan').value,
+    bubble: document.getElementById('bike-bubble').value,
+    themeColor: document.getElementById('theme-color').value,
+    bgColor: document.getElementById('bg-color').value,
+    textColor: document.getElementById('text-color').value,
+    subTextColor: document.getElementById('sub-text-color').value,
+  };
+}
+
+function hexToRgba(hex, alpha) {
+  var r = parseInt(hex.slice(1,3),16);
+  var g = parseInt(hex.slice(3,5),16);
+  var b = parseInt(hex.slice(5,7),16);
+  return 'rgba('+r+','+g+','+b+','+alpha+')';
+}
+
+function togglePanel(el) {
+  var body = el.nextElementSibling;
+  body.classList.toggle('hidden');
+}
+
+function toggleCtrlSection(titleEl) {
+  var body = titleEl.nextElementSibling;
+  titleEl.classList.toggle('collapsed');
+  body.classList.toggle('collapsed');
+}
+
+function handleUpload(type, input) {
+  var file = input.files[0];
+  if (!file) return;
+  var reader = new FileReader();
+  reader.onload = function(e) {
+    var img = new Image();
+    img.onload = function() {
+      bikeImages[type] = img;
+      var area = document.getElementById('upload-' + type);
+      area.classList.add('has-image');
+      area.innerHTML = '<img src="' + e.target.result + '">';
+    };
+    img.src = e.target.result;
+  };
+  reader.readAsDataURL(file);
+}
+
+function onConfigChange() {
+  // 如果已经生成过素材，重新渲染全部
+  if (materialItems.length > 0) generateAll();
+}
+
+// ========== 分类筛选 ==========
+document.getElementById('cat-tabs').addEventListener('click', function(e) {
+  var btn = e.target.closest('.category-tab');
+  if (!btn) return;
+  document.querySelectorAll('.category-tab').forEach(function(b){ b.classList.remove('active'); });
+  btn.classList.add('active');
+  currentFilter = btn.dataset.cat;
+  applyFilter();
+});
+
+function applyFilter() {
+  document.querySelectorAll('.material-card').forEach(function(card) {
+    if (currentFilter === 'all' || card.dataset.cat === currentFilter) {
+      card.classList.remove('hidden');
+    } else {
+      card.classList.add('hidden');
+    }
+  });
+}
+
+// ========== 核心渲染函数 ==========
+function renderMaterial(mat, config, editParams) {
+  var canvas = document.createElement('canvas');
+  // 纯文字素材用高分辨率渲染，提升清晰度
+  var hdScale = (mat.hasText && !mat.view && mat.fit !== 'layered' && mat.fit !== 'fixed-image' && mat.fit !== 'tinted-image') ? 3 : 1;
+  canvas.width = mat.w * hdScale;
+  canvas.height = mat.h * hdScale;
+  var ctx = canvas.getContext('2d');
+  if (hdScale > 1) ctx.scale(hdScale, hdScale);
+
+  // 编辑参数（默认值）
+  var params = editParams || { x:50, y:50, scale:100, rotate:0, bgColor:config.bgColor, transparent:false };
+
+  // 背景
+  if (!params.transparent) {
+    if (mat.bg === 'theme') {
+      ctx.fillStyle = config.themeColor;
+    } else if (mat.bg === 'white') {
+      ctx.fillStyle = '#ffffff';
+    } else if (mat.bg === 'transparent') {
+      // 不填充
+    } else {
+      ctx.fillStyle = params.bgColor;
+    }
+    if (mat.bg !== 'transparent') {
+      ctx.fillRect(0, 0, mat.w, mat.h);
+    }
+  }
+
+  // 多图层合成模式
+  if (mat.fit === 'layered' && mat.layers) {
+    mat.layers.forEach(function(layer) {
+      if (layer.type === 'detail-masked' && mat.detailMasks) {
+        // 每张细节图用独立蒙版裁切
+        for (var dm = 0; dm < mat.detailMasks.length; dm++) {
+          var dImg = bikeImages['detail' + (dm + 1)];
+          var maskImg = fixedImageCache[mat.detailMasks[dm]];
+          if (dImg && maskImg && maskImg.complete) {
+            var detailDefaults = [{ x:17, y:74, scale:44 }, { x:48, y:72, scale:43 }, { x:82, y:74, scale:46 }];
+            var dp = params['detail' + (dm + 1)] || detailDefaults[dm];
+            // 在临时 canvas 上：先画细节图，再用蒙版裁切
+            var tmpC = document.createElement('canvas');
+            tmpC.width = mat.w; tmpC.height = mat.h;
+            var tmpX = tmpC.getContext('2d');
+            // 绘制细节图（cover 模式，支持位移缩放）
+            var dR = dImg.width / dImg.height;
+            var cR = mat.w / mat.h;
+            var ddw, ddh;
+            var dScale = dp.scale / 100;
+            if (dR > cR) { ddh = mat.h; ddw = mat.h * dR; }
+            else { ddw = mat.w; ddh = mat.w / dR; }
+            ddw *= dScale; ddh *= dScale;
+            var ox = (dp.x / 100) * mat.w - ddw / 2;
+            var oy = (dp.y / 100) * mat.h - ddh / 2;
+            tmpX.drawImage(dImg, ox, oy, ddw, ddh);
+            // 用蒙版裁切
+            tmpX.globalCompositeOperation = 'destination-in';
+            tmpX.drawImage(maskImg, 0, 0, mat.w, mat.h);
+            tmpX.globalCompositeOperation = 'source-over';
+            ctx.drawImage(tmpC, 0, 0);
+          }
+        }
+      } else if (layer.type === 'detail-photos') {
+        // 三张细节图，每张可独立调整位置和缩放
+        var slotW = Math.floor(mat.w / 3);
+        var slotTop = mat.h * 0.35;
+        var slotH = mat.h - slotTop;
+        for (var di = 0; di < 3; di++) {
+          var dImg = bikeImages['detail' + (di + 1)];
+          if (dImg) {
+            var dp = params['detail' + (di + 1)] || { x:50, y:50, scale:100 };
+            var sx = di * slotW;
+            ctx.save();
+            // cover 模式
+            var dR = dImg.width / dImg.height;
+            var sR = slotW / slotH;
+            var ddw, ddh;
+            var dScale = dp.scale / 100;
+            if (dR > sR) { ddh = slotH; ddw = slotH * dR; }
+            else { ddw = slotW; ddh = slotW / dR; }
+            ddw *= dScale; ddh *= dScale;
+            var ox = sx + (dp.x / 100) * slotW - ddw / 2;
+            var oy = slotTop + (dp.y / 100) * slotH - ddh / 2;
+            ctx.drawImage(dImg, ox, oy, ddw, ddh);
+            ctx.restore();
+          }
+        }
+      } else if (layer.type === 'mask-overlay') {
+        // 用蒙版图的形状裁切：只保留蒙版有像素的区域
+        var maskImg = fixedImageCache[layer.src];
+        if (maskImg && maskImg.complete && maskImg.naturalWidth > 0) {
+          ctx.globalCompositeOperation = 'destination-in';
+          ctx.drawImage(maskImg, 0, 0, mat.w, mat.h);
+          ctx.globalCompositeOperation = 'source-over';
+        }
+      } else if (layer.type === 'fixed') {
+        var img = fixedImageCache[layer.src];
+        if (img && img.complete && img.naturalWidth > 0) {
+          // 等比缩放居中绘制，不拉伸
+          var imgR = img.naturalWidth / img.naturalHeight;
+          var canR = mat.w / mat.h;
+          var dw, dh;
+          if (imgR > canR) { dw = mat.w; dh = mat.w / imgR; }
+          else { dh = mat.h; dw = mat.h * imgR; }
+          ctx.drawImage(img, (mat.w - dw) / 2, (mat.h - dh) / 2, dw, dh);
+        }
+      } else if (layer.type === 'replaceable-bg') {
+        // 优先用上传的图片，没有则用默认固定图片
+        var bgImg = bikeImages[layer.viewKey] || fixedImageCache[layer.src];
+        if (bgImg && bgImg.complete && bgImg.naturalWidth > 0) {
+          ctx.drawImage(bgImg, 0, 0, mat.w, mat.h);
+        }
+      } else if (layer.type === 'tinted-gradient') {
+        // 先在临时 canvas 上绘制图片，再用 source-in 叠加渐变
+        var tmpCanvas = document.createElement('canvas');
+        tmpCanvas.width = mat.w; tmpCanvas.height = mat.h;
+        var tmpCtx = tmpCanvas.getContext('2d');
+        var img2 = (layer.replaceKey && bikeImages[layer.replaceKey]) || fixedImageCache[layer.src];
+        if (img2 && img2.complete && img2.naturalWidth > 0) {
+          tmpCtx.drawImage(img2, 0, 0, mat.w, mat.h);
+          tmpCtx.globalCompositeOperation = 'source-in';
+          var gTop = params.gradientTop || layer.gradientTop;
+          var gBottom = params.gradientBottom || layer.gradientBottom;
+          var grad = tmpCtx.createLinearGradient(0, 0, 0, mat.h * (layer.gradientEnd || 1));
+          grad.addColorStop(0, gTop);
+          // 支持三色渐变中间节点
+          var gMid = params.gradientMid || layer.gradientMid;
+          if (gMid) {
+            var gMidPos = params.gradientMidPos != null ? params.gradientMidPos : (layer.gradientMidPos != null ? layer.gradientMidPos : 0.5);
+            grad.addColorStop(gMidPos, gMid);
+          }
+          // 支持四色渐变第二中间节点
+          var gMid2 = params.gradientMid2 || layer.gradientMid2;
+          if (gMid2) {
+            var gMid2Pos = params.gradientMid2Pos != null ? params.gradientMid2Pos : (layer.gradientMid2Pos != null ? layer.gradientMid2Pos : 0.75);
+            grad.addColorStop(gMid2Pos, gMid2);
+          }
+          grad.addColorStop(1, gBottom);
+          tmpCtx.fillStyle = grad;
+          tmpCtx.fillRect(0, 0, mat.w, mat.h);
+          tmpCtx.globalCompositeOperation = 'source-over';
+        }
+        // 白色描边效果（先画描边到底层，再画渐变覆盖）
+        if (layer.whiteStroke) {
+          var strokeC = document.createElement('canvas');
+          strokeC.width = mat.w; strokeC.height = mat.h;
+          var stCtx = strokeC.getContext('2d');
+          stCtx.drawImage(img2, 0, 0, mat.w, mat.h);
+          stCtx.globalCompositeOperation = 'source-in';
+          stCtx.fillStyle = '#ffffff';
+          stCtx.fillRect(0, 0, mat.w, mat.h);
+          // 8方向偏移画白色轮廓
+          var strokePx = 3;
+          for (var si = 0; si < 3; si++) {
+            ctx.drawImage(strokeC, -strokePx, -strokePx);
+            ctx.drawImage(strokeC, strokePx, -strokePx);
+            ctx.drawImage(strokeC, -strokePx, strokePx);
+            ctx.drawImage(strokeC, strokePx, strokePx);
+            ctx.drawImage(strokeC, 0, -strokePx);
+            ctx.drawImage(strokeC, 0, strokePx);
+            ctx.drawImage(strokeC, -strokePx, 0);
+            ctx.drawImage(strokeC, strokePx, 0);
+          }
+        }
+        ctx.drawImage(tmpCanvas, 0, 0);
+      } else if (layer.type === 'b1-text') {
+        // 靓车卡片顶部文案：前缀(小字) + 车型名(大字) + 后缀(小字)，带描边和投影
+        var bt = mat.b1Text || {};
+        var prefix = params.b1Prefix != null ? params.b1Prefix : (bt.prefix || '恭喜你 骑到');
+        var bikeName = params.customText || config.name;
+        var suffix = params.b1Suffix != null ? params.b1Suffix : (bt.suffix || '啦');
+        var fs = params.b1FontSize || bt.fontSize || 10;
+        var sfs = params.b1SpecialFontSize || bt.specialFontSize || 12;
+        var sw = params.b1StrokeWidth != null ? params.b1StrokeWidth : (bt.strokeWidth || 6);
+        var sc = params.b1StrokeColor || bt.strokeColor || '#ffffff';
+        var shc = params.b1ShadowColor || bt.shadowColor || 'rgba(0,0,0,0.3)';
+        var shb = params.b1ShadowBlur != null ? params.b1ShadowBlur : (bt.shadowBlur || 4);
+        var tc = params.b1TextColor || bt.textColor || '#1a9de0';
+        var spc = params.b1SpecialColor || bt.specialColor || '#0076ff';
+        var tx = ((params.b1TextX != null ? params.b1TextX : (bt.textX || 18)) / 100) * mat.w;
+        var ty = ((params.b1TextY != null ? params.b1TextY : (bt.textY || 5)) / 100) * mat.h;
+        var fontBase = '"造字工房元黑体", "MYuanHei", -apple-system, sans-serif';
+        // 绘制函数：先描边再填充
+        function drawB1Segment(text, size, color, x) {
+          ctx.font = size + 'px ' + fontBase;
+          ctx.lineWidth = sw; ctx.strokeStyle = sc; ctx.lineJoin = 'round';
+          ctx.shadowColor = shc; ctx.shadowBlur = shb; ctx.shadowOffsetX = 1; ctx.shadowOffsetY = 2;
+          ctx.strokeText(text, x, ty);
+          ctx.shadowColor = 'transparent';
+          ctx.fillStyle = color;
+          ctx.fillText(text, x, ty);
+          return ctx.measureText(text).width;
+        }
+        ctx.save(); ctx.textAlign = 'left'; ctx.textBaseline = 'bottom';
+        ctx.transform(1, 0, -0.15, 1, 0, 0);
+        var cx = tx;
+        var gap = fs * 0.2;
+        cx += drawB1Segment(prefix, fs, tc, cx);
+        cx += gap;
+        cx += drawB1Segment(bikeName, sfs, spc, cx);
+        cx += gap;
+        drawB1Segment(suffix, fs, tc, cx);
+        ctx.restore();
+      } else if (layer.type === 'icon-view') {
+        var iconImg = bikeImages.icon;
+        if (iconImg) {
+          var iconScale = (params.iconScale != null ? params.iconScale : (mat.defaultIconScale || 55)) / 100;
+          var iRatio = iconImg.width / iconImg.height;
+          var drawSize = mat.w * iconScale;
+          var dw = iRatio > 1 ? drawSize : drawSize * iRatio;
+          var dh = iRatio > 1 ? drawSize / iRatio : drawSize;
+          var ix = ((params.iconX != null ? params.iconX : (mat.defaultIconX || 50)) / 100) * mat.w;
+          var iy = ((params.iconY != null ? params.iconY : (mat.defaultIconY || 45)) / 100) * mat.h;
+          var iRotate = (params.iconRotate || 0) * Math.PI / 180;
+          ctx.save();
+          ctx.translate(ix, iy);
+          ctx.rotate(iRotate);
+          ctx.drawImage(iconImg, -dw / 2, -dh / 2, dw, dh);
+          ctx.restore();
+        }
+      } else if (layer.type === 'c1-text') {
+        // 发现靓车文案层：右对齐，上面小字+色块，下面大字+色块，整体可移动缩放
+        var ct = mat.c1Text || {};
+        var subText = params.c1SubText || ct.subText || '「舒适圈」系列';
+        var mainText = params.c1MainText || ct.mainText || '冰川号';
+        var subColor = params.c1SubColor || ct.subColor || '#888888';
+        var mainColor = params.c1MainColor || ct.mainColor || '#333333';
+        var txPct = params.c1TextX != null ? params.c1TextX : (ct.textX || 50);
+        var tyPct = params.c1TextY != null ? params.c1TextY : (ct.textY || 55);
+        var textScale = (params.c1TextScale != null ? params.c1TextScale : 100) / 100;
+        var tx = (txPct / 100) * mat.w;
+        var ty = (tyPct / 100) * mat.h;
+        var subFs = Math.round(mat.w * 0.028 * textScale);
+        var mainFs = Math.round(mat.w * 0.055 * textScale);
+        var subBarH = Math.round(18 * textScale);
+        var mainBarH = Math.round(24 * textScale);
+        var gap = Math.round(subFs * 0.8);
+        ctx.save();
+        ctx.textAlign = 'right'; ctx.textBaseline = 'middle';
+        // 小字 + 色块（统一颜色）
+        ctx.font = subFs + 'px "Alibaba PuHuiTi 2.0", "AlibabaPuHuiTi", -apple-system, sans-serif';
+        var subW = ctx.measureText(subText).width;
+        ctx.fillStyle = mainColor;
+        ctx.fillRect(tx - subW, ty + subFs / 2 + 2, subW, subBarH);
+        ctx.fillText(subText, tx, ty);
+        // 大字 + 色块（统一颜色）
+        var mainY = ty + subFs + gap + mainFs / 2;
+        ctx.font = mainFs + 'px "造字工房元黑体", "MYuanHei", -apple-system, sans-serif';
+        var mainW = ctx.measureText(mainText).width;
+        ctx.fillStyle = mainColor;
+        ctx.fillRect(tx - mainW, mainY + mainFs / 2 + 2, mainW, mainBarH);
+        ctx.fillText(mainText, tx, mainY);
+        ctx.restore();
+      } else if (layer.type === 'd1-text') {
+        // D1 高光背景卡文案层：左上角 icon 右侧，白色造字工房元黑体，带描边
+        var dt = mat.d1Text || {};
+        var d1Txt = params.d1Text || dt.text || '首次骑到';
+        var d1Fs = params.d1FontSize || dt.fontSize || 52;
+        var d1Tc = params.d1TextColor || dt.textColor || '#ffffff';
+        var d1Sc = params.d1StrokeColor || dt.strokeColor || '#0eb5fe';
+        var d1Sw = params.d1StrokeWidth != null ? params.d1StrokeWidth : (dt.strokeWidth || 8);
+        var d1Tx = ((params.d1TextX != null ? params.d1TextX : (dt.textX || 25)) / 100) * mat.w;
+        var d1Ty = ((params.d1TextY != null ? params.d1TextY : (dt.textY || 8)) / 100) * mat.h;
+        var d1Rotate = (params.d1TextRotate || 0) * Math.PI / 180;
+        var d1Scale = (params.d1TextScale != null ? params.d1TextScale : 100) / 100;
+        var fontBase = '"造字工房元黑体", "MYuanHei", -apple-system, sans-serif';
+        ctx.save();
+        ctx.translate(d1Tx, d1Ty);
+        ctx.rotate(d1Rotate);
+        ctx.scale(d1Scale, d1Scale);
+        ctx.font = d1Fs + 'px ' + fontBase;
+        ctx.textAlign = 'left'; ctx.textBaseline = 'middle';
+        // 投影
+        ctx.shadowColor = 'rgba(30,140,210,0.3)';
+        ctx.shadowBlur = 12;
+        ctx.shadowOffsetX = 2;
+        ctx.shadowOffsetY = 4;
+        // 填充
+        ctx.fillStyle = d1Tc;
+        ctx.fillText(d1Txt, 0, 0);
+        ctx.shadowColor = 'transparent';
+        ctx.restore();
+      } else if (layer.type === 'd3-text') {
+        // D3 高光分享文案层：上行小字 + 下行大字，居中，造字工房元黑体，带投影
+        var d3t = mat.d3Text || {};
+        var d3Top = params.d3TopText || d3t.topText || '首次骑到';
+        var d3Bot = params.d3BottomText || d3t.bottomText || '哈啰「冰川号」';
+        var d3TopFs = params.d3TopFontSize || d3t.topFontSize || 36;
+        var d3BotFs = params.d3BottomFontSize || d3t.bottomFontSize || 72;
+        var d3Tc = params.d3TextColor || d3t.textColor || '#ffffff';
+        var d3Tx = ((params.d3TextX != null ? params.d3TextX : (d3t.textX || 50)) / 100) * mat.w;
+        var d3Ty = ((params.d3TextY != null ? params.d3TextY : (d3t.textY || 16)) / 100) * mat.h;
+        var d3Ts = (params.d3TextScale != null ? params.d3TextScale : 100) / 100;
+        var fontBase3 = '"造字工房元黑体", "MYuanHei", -apple-system, sans-serif';
+        ctx.save();
+        ctx.translate(d3Tx, d3Ty);
+        ctx.scale(d3Ts, d3Ts);
+        ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+        // 投影
+        ctx.shadowColor = 'rgba(30,140,210,0.3)';
+        ctx.shadowBlur = 12;
+        ctx.shadowOffsetX = 2;
+        ctx.shadowOffsetY = 4;
+        // 上行小字
+        ctx.font = d3TopFs + 'px ' + fontBase3;
+        ctx.fillStyle = d3Tc;
+        var gap3 = d3TopFs * 0.4;
+        ctx.fillText(d3Top, 0, -d3BotFs / 2 - gap3);
+        // 下行大字
+        ctx.font = d3BotFs + 'px ' + fontBase3;
+        ctx.fillText(d3Bot, 0, d3TopFs / 2 + gap3 * 0.5);
+        ctx.shadowColor = 'transparent';
+        ctx.restore();
+      } else if (layer.type === 'e1-text') {
+        // 首页场景卡文案：「辆」黑色 + 车型名彩色
+        var et = mat.e1Text || {};
+        var prefix = params.e1Prefix || et.prefix || '辆';
+        var bikeName = params.e1Name || config.name;
+        var prefixColor = params.e1PrefixColor || et.prefixColor || '#000000';
+        var nameColor = params.e1NameColor || et.nameColor || '#3db9ed';
+        var eFs = Math.max(12, mat.h * 0.55);
+        var fontBase = '"造字工房元黑体", "MYuanHei", -apple-system, sans-serif';
+        ctx.save();
+        ctx.textAlign = 'left'; ctx.textBaseline = 'middle';
+        var ey = mat.h * 0.5;
+        var ex = Math.round(eFs * 0.15);
+        // 画「辆」
+        ctx.font = eFs + 'px ' + fontBase;
+        ctx.fillStyle = prefixColor;
+        ctx.fillText(prefix, ex, ey);
+        var pw = ctx.measureText(prefix).width;
+        // 画空格+车型名
+        var gap = eFs * 0.15;
+        ctx.fillStyle = nameColor;
+        ctx.fillText(' ' + bikeName, ex + pw + gap, ey);
+        ctx.restore();
+      } else if (layer.type === 'tinted-icon') {
+        // 可调色+位置+缩放+旋转的图标图层
+        var tiImg = fixedImageCache[layer.src];
+        if (tiImg && tiImg.complete && tiImg.naturalWidth > 0) {
+          var tiScale = (params.iconScale != null ? params.iconScale : (layer.defaultScale || mat.defaultIconScale || 25)) / 100;
+          var tiRatio = tiImg.naturalWidth / tiImg.naturalHeight;
+          var tiSize = mat.w * tiScale;
+          var tiW = tiRatio > 1 ? tiSize : tiSize * tiRatio;
+          var tiH = tiRatio > 1 ? tiSize / tiRatio : tiSize;
+          var tiX = ((params.iconX != null ? params.iconX : (layer.defaultX || mat.defaultIconX || 50)) / 100) * mat.w;
+          var tiY = ((params.iconY != null ? params.iconY : (layer.defaultY || mat.defaultIconY || 50)) / 100) * mat.h;
+          var tiRotate = (params.iconRotate || 0) * Math.PI / 180;
+          var tiColor = params.solidColor || layer.tintColor || '#52b0ff';
+          // 临时 canvas：画图片形状 → 用颜色填充
+          var tiTmp = document.createElement('canvas');
+          tiTmp.width = mat.w; tiTmp.height = mat.h;
+          var tiCtx = tiTmp.getContext('2d');
+          // 先填充纯色到整个画布
+          tiCtx.fillStyle = tiColor;
+          tiCtx.fillRect(0, 0, mat.w, mat.h);
+          // 用 destination-in 只保留图片形状区域的颜色
+          tiCtx.globalCompositeOperation = 'destination-in';
+          tiCtx.save();
+          tiCtx.translate(tiX, tiY);
+          tiCtx.rotate(tiRotate);
+          tiCtx.drawImage(tiImg, -tiW / 2, -tiH / 2, tiW, tiH);
+          tiCtx.restore();
+          tiCtx.globalCompositeOperation = 'source-over';
+          // 内发光：用 shadow 在形状内部边缘叠加白色
+          if (layer.innerGlow) {
+            var glowC = document.createElement('canvas');
+            glowC.width = mat.w; glowC.height = mat.h;
+            var glC = glowC.getContext('2d');
+            // 画一个比画布大很多的矩形，中间挖掉图片形状，这样 shadow 就会向内投射
+            glC.save();
+            glC.translate(tiX, tiY);
+            glC.rotate(tiRotate);
+            glC.drawImage(tiImg, -tiW / 2, -tiH / 2, tiW, tiH);
+            glC.restore();
+            // 反转：先画满，再用 source-out 挖掉形状
+            var maskC = document.createElement('canvas');
+            maskC.width = mat.w; maskC.height = mat.h;
+            var mC = maskC.getContext('2d');
+            mC.fillRect(0, 0, mat.w, mat.h);
+            mC.globalCompositeOperation = 'destination-out';
+            mC.save();
+            mC.translate(tiX, tiY);
+            mC.rotate(tiRotate);
+            mC.drawImage(tiImg, -tiW / 2, -tiH / 2, tiW, tiH);
+            mC.restore();
+            // 用这个反转蒙版画 shadow
+            var shadowC = document.createElement('canvas');
+            shadowC.width = mat.w; shadowC.height = mat.h;
+            var sC = shadowC.getContext('2d');
+            sC.shadowColor = 'rgba(255,255,255,0.95)';
+            sC.shadowBlur = tiSize * 0.1;
+            sC.shadowOffsetX = 0;
+            sC.shadowOffsetY = 0;
+            sC.drawImage(maskC, 0, 0);
+            // 只保留形状内部的 shadow
+            sC.globalCompositeOperation = 'destination-in';
+            sC.save();
+            sC.translate(tiX, tiY);
+            sC.rotate(tiRotate);
+            sC.drawImage(tiImg, -tiW / 2, -tiH / 2, tiW, tiH);
+            sC.restore();
+            // 去掉反转蒙版本身（只留 shadow）
+            sC.globalCompositeOperation = 'destination-out';
+            sC.drawImage(maskC, 0, 0);
+            tiCtx.drawImage(shadowC, 0, 0);
+            // 第二层内发光：更窄更亮
+            var shadowC2 = document.createElement('canvas');
+            shadowC2.width = mat.w; shadowC2.height = mat.h;
+            var sC2 = shadowC2.getContext('2d');
+            sC2.shadowColor = 'rgba(255,255,255,0.9)';
+            sC2.shadowBlur = tiSize * 0.05;
+            sC2.shadowOffsetX = 0;
+            sC2.shadowOffsetY = 0;
+            sC2.drawImage(maskC, 0, 0);
+            sC2.globalCompositeOperation = 'destination-in';
+            sC2.save();
+            sC2.translate(tiX, tiY);
+            sC2.rotate(tiRotate);
+            sC2.drawImage(tiImg, -tiW / 2, -tiH / 2, tiW, tiH);
+            sC2.restore();
+            sC2.globalCompositeOperation = 'destination-out';
+            sC2.drawImage(maskC, 0, 0);
+            tiCtx.drawImage(shadowC2, 0, 0);
+          }
+          ctx.drawImage(tiTmp, 0, 0);
+        }
+      } else if (layer.type === 'tinted-solid') {
+        // 纯色填充图层：用图片形状作为蒙版，填充单一颜色
+        var solidImg = fixedImageCache[layer.src];
+        if (solidImg && solidImg.complete && solidImg.naturalWidth > 0) {
+          var tmpSolid = document.createElement('canvas');
+          tmpSolid.width = mat.w; tmpSolid.height = mat.h;
+          var tmpSolidCtx = tmpSolid.getContext('2d');
+          tmpSolidCtx.drawImage(solidImg, 0, 0, mat.w, mat.h);
+          tmpSolidCtx.globalCompositeOperation = 'source-in';
+          tmpSolidCtx.fillStyle = params.solidColor || layer.tintColor || '#ffffff';
+          tmpSolidCtx.fillRect(0, 0, mat.w, mat.h);
+          tmpSolidCtx.globalCompositeOperation = 'source-over';
+          // 斜面浮雕效果：顶部亮边 + 底部暗边
+          if (layer.bevelEmboss) {
+            // 内斜面：角度90° 高度30° 大小7px
+            // 高光：滤色模式 白色 50%
+            var bvlC = document.createElement('canvas');
+            bvlC.width = mat.w; bvlC.height = mat.h;
+            var bvlCtx = bvlC.getContext('2d');
+            bvlCtx.shadowColor = 'rgba(255,255,255,0.5)';
+            bvlCtx.shadowBlur = 7;
+            bvlCtx.shadowOffsetX = 0;
+            bvlCtx.shadowOffsetY = -4;
+            bvlCtx.drawImage(solidImg, 0, 0, mat.w, mat.h);
+            bvlCtx.globalCompositeOperation = 'destination-in';
+            bvlCtx.drawImage(solidImg, 0, 0, mat.w, mat.h);
+            bvlCtx.globalCompositeOperation = 'destination-out';
+            bvlCtx.drawImage(solidImg, 0, 0, mat.w, mat.h);
+            tmpSolidCtx.globalCompositeOperation = 'screen';
+            tmpSolidCtx.drawImage(bvlC, 0, 0);
+            // 阴影：正片叠底 蓝色 53%
+            var bvlC2 = document.createElement('canvas');
+            bvlC2.width = mat.w; bvlC2.height = mat.h;
+            var bvlCtx2 = bvlC2.getContext('2d');
+            bvlCtx2.shadowColor = 'rgba(82,176,255,0.53)';
+            bvlCtx2.shadowBlur = 7;
+            bvlCtx2.shadowOffsetX = 0;
+            bvlCtx2.shadowOffsetY = 4;
+            bvlCtx2.drawImage(solidImg, 0, 0, mat.w, mat.h);
+            bvlCtx2.globalCompositeOperation = 'destination-in';
+            bvlCtx2.drawImage(solidImg, 0, 0, mat.w, mat.h);
+            bvlCtx2.globalCompositeOperation = 'destination-out';
+            bvlCtx2.drawImage(solidImg, 0, 0, mat.w, mat.h);
+            tmpSolidCtx.globalCompositeOperation = 'multiply';
+            tmpSolidCtx.drawImage(bvlC2, 0, 0);
+            tmpSolidCtx.globalCompositeOperation = 'source-over';
+          }
+          ctx.drawImage(tmpSolid, 0, 0);
+        }
+      } else if (layer.type === 'bike-view') {
+        // 车辆视图图层：支持位置、缩放、旋转调节
+        var bvImg = (layer.replaceKey && bikeImages[layer.replaceKey]) || bikeImages[layer.viewKey || 'right'];
+        if (bvImg) {
+          var bvScale = (params.bikeViewScale != null ? params.bikeViewScale : (layer.defaultScale || 100)) / 100;
+          var bvRatio = bvImg.width / bvImg.height;
+          var bvW, bvH;
+          if (bvRatio > (mat.w / mat.h)) { bvH = mat.h * 0.85; bvW = bvH * bvRatio; }
+          else { bvW = mat.w * 0.85; bvH = bvW / bvRatio; }
+          bvW *= bvScale; bvH *= bvScale;
+          var bvX = ((params.bikeViewX != null ? params.bikeViewX : (layer.defaultX || 50)) / 100) * mat.w;
+          var bvY = ((params.bikeViewY != null ? params.bikeViewY : (layer.defaultY || 50)) / 100) * mat.h;
+          var bvRotate = ((params.bikeViewRotate != null ? params.bikeViewRotate : 0)) * Math.PI / 180;
+          ctx.save();
+          ctx.translate(bvX, bvY);
+          ctx.rotate(bvRotate);
+          ctx.drawImage(bvImg, -bvW / 2, -bvH / 2, bvW, bvH);
+          ctx.restore();
+        }
+      }
+    });
+    return canvas;
+  }
+
+  // 固定图片素材：直接绘制指定图片，铺满画布
+  if (mat.fit === 'fixed-image' && mat.fixedImage) {
+    var fixedImg = fixedImageCache[mat.fixedImage];
+    if (fixedImg && fixedImg.complete && fixedImg.naturalWidth > 0) {
+      ctx.drawImage(fixedImg, 0, 0, mat.w, mat.h);
+    }
+    return canvas;
+  }
+
+  // 可调色固定图片：只改变图片中形状的颜色，透明区域保持透明
+  if (mat.fit === 'tinted-image' && mat.fixedImage) {
+    var tintImg = fixedImageCache[mat.fixedImage];
+    if (tintImg && tintImg.complete && tintImg.naturalWidth > 0) {
+      // 先绘制原图
+      ctx.drawImage(tintImg, 0, 0, mat.w, mat.h);
+      // 用 source-in 合成模式：只在已有像素的区域填充颜色
+      ctx.globalCompositeOperation = 'source-in';
+      var tintColor = params.bgColor || config.themeColor;
+      ctx.fillStyle = tintColor;
+      ctx.fillRect(0, 0, mat.w, mat.h);
+      ctx.globalCompositeOperation = 'source-over';
+    }
+    return canvas;
+  }
+
+  // 获取对应视角的车辆图
+  var bikeImg = mat.view ? bikeImages[mat.view] : null;
+
+  if (bikeImg) {
+    ctx.save();
+    var scale = params.scale / 100;
+    var opacity = mat.opacity || 1;
+    ctx.globalAlpha = opacity;
+
+    // 计算车辆绘制尺寸（适配画布）
+    var imgRatio = bikeImg.width / bikeImg.height;
+    var canvasRatio = mat.w / mat.h;
+    var drawW, drawH;
+
+    if (mat.fit === 'bike-card') {
+      // 车辆卡片模式：车辆尽量撑满画布，底部轮子贴近底边
+      var bikeScaleRatio = mat.bikeScale || 0.9;
+      var bikeYPercent = mat.bikeY || 52;
+      if (imgRatio > canvasRatio) {
+        drawW = mat.w * bikeScaleRatio;
+        drawH = drawW / imgRatio;
+      } else {
+        drawH = mat.h * bikeScaleRatio;
+        drawW = drawH * imgRatio;
+      }
+    } else if (mat.fit === 'contain') {
+      if (imgRatio > canvasRatio) {
+        drawW = mat.w * 0.85;
+        drawH = drawW / imgRatio;
+      } else {
+        drawH = mat.h * 0.85;
+        drawW = drawH * imgRatio;
+      }
+    } else {
+      // cover
+      if (imgRatio > canvasRatio) {
+        drawH = mat.h * 0.9;
+        drawW = drawH * imgRatio;
+      } else {
+        drawW = mat.w * 0.9;
+        drawH = drawW / imgRatio;
+      }
+    }
+
+    drawW *= scale;
+    drawH *= scale;
+
+    // 位置（百分比映射到画布坐标）
+    var cx, cy;
+    if (mat.fit === 'bike-card') {
+      // bike-card模式：水平居中，垂直按bikeY百分比定位（偏下，轮子贴底）
+      var bikeYP = mat.bikeY || 52;
+      cx = mat.w / 2 + ((params.x - 50) / 50) * (mat.w * 0.15);
+      cy = (bikeYP / 100) * mat.h + ((params.y - 50) / 50) * (mat.h * 0.1);
+    } else {
+      cx = (params.x / 100) * mat.w;
+      cy = (params.y / 100) * mat.h;
+    }
+
+    ctx.translate(cx, cy);
+    ctx.rotate(params.rotate * Math.PI / 180);
+    ctx.drawImage(bikeImg, -drawW/2, -drawH/2, drawW, drawH);
+    ctx.restore();
+  }
+
+  // 文字
+  if (mat.hasText) {
+    ctx.save();
+    var text = '';
+    var fontSize = 0;
+    var textY = 0;
+    var isTitle = false;
+
+    switch(mat.textType) {
+      case 'name':
+        text = config.name;
+        fontSize = Math.max(16, Math.min(mat.w * 0.06, 48));
+        textY = mat.h * 0.88;
+        break;
+      case 'title':
+        text = config.name;
+        // 字号自适应：先按高度算，再检查宽度是否够用
+        fontSize = Math.max(14, mat.h * 0.6);
+        var maxTextWidth = mat.w * 0.95;
+        var estCharWidth = fontSize * 1.1;
+        if (text.length * estCharWidth > maxTextWidth) {
+          fontSize = Math.floor(maxTextWidth / (text.length * 1.1));
+        }
+        textY = mat.h * 0.72;
+        isTitle = true;
+        break;
+      case 'slogan':
+        text = config.slogan;
+        fontSize = Math.max(14, Math.min(mat.w * 0.05, 40));
+        textY = mat.h * 0.92;
+        break;
+      case 'sceneName':
+        text = '辆 ' + config.name;
+        fontSize = Math.max(12, mat.h * 0.55);
+        textY = mat.h * 0.7;
+        break;
+      case 'price':
+        text = '限时优惠';
+        fontSize = Math.max(12, mat.h * 0.4);
+        textY = mat.h * 0.65;
+        break;
+      case 'detail':
+        text = config.name + ' · 车型详情';
+        fontSize = Math.max(16, mat.w * 0.04);
+        textY = mat.h * 0.06;
+        break;
+      case 'marketingTitle':
+        text = config.name;
+        fontSize = Math.max(14, mat.h * 0.6);
+        var maxTW = mat.w * 0.95;
+        var estCW = fontSize * 1.1;
+        if (text.length * estCW > maxTW) { fontSize = Math.floor(maxTW / (text.length * 1.1)); }
+        textY = mat.h * 0.72;
+        isTitle = true;
+        break;
+    }
+
+    // 自定义文案覆盖
+    if (params.customText) { text = params.customText; }
+
+    if (text) {
+      // 车型标题
+      if (isTitle) {
+        if (mat.textType === 'marketingTitle') {
+          // 营销标题：阿里巴巴普惠体 Black + 白色描边
+          ctx.font = '900 ' + Math.round(fontSize) + 'px "Alibaba PuHuiTi 2.0", "AlibabaPuHuiTi", -apple-system, sans-serif';
+          ctx.textAlign = 'left';
+        } else {
+          ctx.font = Math.round(fontSize) + 'px "造字工房元黑体", "MYuanHei", -apple-system, sans-serif';
+          ctx.textAlign = 'left';
+        }
+        // 用 transform 实现倾斜，避免 italic 导致笔画粘连
+        if (mat.italic) {
+          ctx.save();
+          ctx.transform(1, 0, -0.15, 1, 0, 0);
+        }
+      } else {
+        ctx.font = 'bold ' + Math.round(fontSize) + 'px -apple-system, sans-serif';
+        ctx.textAlign = 'center';
+      }
+      // 文字颜色：深色背景用白色，浅色背景用主题色
+      if (mat.textGradient) {
+        // 文字渐变填充（上到下）
+        var gTop = params.textGradTop || mat.textGradTop || '#5ec8e6';
+        var gBot = params.textGradBottom || mat.textGradBottom || '#1a1a1a';
+        var tGrad = ctx.createLinearGradient(0, 0, mat.w * 0.5, textY);
+        tGrad.addColorStop(0, gTop);
+        tGrad.addColorStop(1, gBot);
+        ctx.fillStyle = tGrad;
+      } else if (mat.bg === 'theme' || mat.bg === 'transparent') {
+        ctx.fillStyle = mat.bg === 'theme' ? '#ffffff' : config.textColor;
+      } else {
+        ctx.fillStyle = config.textColor;
+      }
+      // 文字阴影
+      if (mat.bg === 'theme') {
+        ctx.shadowColor = 'rgba(0,0,0,0.3)';
+        ctx.shadowBlur = 4;
+        ctx.shadowOffsetY = 2;
+      }
+      // 左对齐时从左边距开始绘制，居中时从画布中心绘制
+      var textX = isTitle ? Math.round(fontSize * 0.3) : mat.w / 2;
+      // 营销标题加白色外描边（lineWidth 加倍，fillText 覆盖内侧）
+      if (mat.textType === 'marketingTitle') {
+        ctx.lineWidth = 8;
+        ctx.strokeStyle = '#ffffff';
+        ctx.lineJoin = 'round';
+        ctx.strokeText(text, textX, textY);
+      }
+      ctx.fillText(text, textX, textY);
+      if (isTitle && mat.italic) { ctx.restore(); }
+    }
+    ctx.restore();
+  }
+
+  return canvas;
+}
+
+// ========== 预加载固定图片 ==========
+var fixedImageCache = {};
+function preloadFixedImages(callback) {
+  var toLoad = [];
+  MATERIALS.forEach(function(mat) {
+    if (mat.fixedImage && !fixedImageCache[mat.fixedImage]) {
+      toLoad.push(mat.fixedImage);
+    }
+    if (mat.layers) {
+      mat.layers.forEach(function(layer) {
+        if (layer.src && !fixedImageCache[layer.src]) {
+          toLoad.push(layer.src);
+        }
+      });
+    }
+    if (mat.detailMasks) {
+      mat.detailMasks.forEach(function(src) {
+        if (!fixedImageCache[src]) toLoad.push(src);
+      });
+    }
+  });
+  if (toLoad.length === 0) { callback(); return; }
+  var loaded = 0;
+  toLoad.forEach(function(src) {
+    var img = new Image();
+    img.onload = img.onerror = function() {
+      fixedImageCache[src] = img;
+      loaded++;
+      if (loaded >= toLoad.length) callback();
+    };
+    img.src = src;
+  });
+}
+
+// ========== 默认车辆图片预加载 ==========
+var DEFAULT_BIKES = {
+  left: 'Bicycle Page/A/A-bike/水平左侧-A70简化版.png',
+  right: 'Bicycle Page/A/A-bike/水平右侧-A70简化版.png',
+  angle: 'Bicycle Page/A/A-bike/透视左侧-A70简化版.png',
+  icon: 'Bicycle Page/A/A-bike/icon.png',
+  b1bg: 'Bicycle Page/B/780*1224/1.png'
+};
+(function loadDefaultBikes() {
+  Object.keys(DEFAULT_BIKES).forEach(function(type) {
+    var img = new Image();
+    img.onload = function() {
+      bikeImages[type] = img;
+      var area = document.getElementById('upload-' + type);
+      if (area) { area.classList.add('has-image'); area.innerHTML = '<img src="' + img.src + '">'; }
+    };
+    img.src = DEFAULT_BIKES[type];
+  });
+})();
+
+// ========== 生成全部素材 ==========
+function generateAll() {
+  var hasAnyImage = bikeImages.left || bikeImages.right || bikeImages.angle;
+  if (!hasAnyImage) {
+    alert('请至少上传一张车辆图片');
+    return;
+  }
+  // 先预加载固定图片，再执行生成
+  preloadFixedImages(doGenerate);
+}
+
+function doGenerate() {
+
+  var config = getConfig();
+  var grid = document.getElementById('material-grid');
+  grid.innerHTML = '';
+  materialItems = [];
+
+  var info = document.getElementById('progress-info');
+  info.textContent = '生成中...';
+
+  MATERIALS.forEach(function(mat, idx) {
+    // 如果该素材需要的视角图片没上传，用已有的替代
+    var effectiveMat = Object.assign({}, mat);
+    if (mat.view && !bikeImages[mat.view]) {
+      // 优先用angle，其次left，最后right
+      if (bikeImages.angle) effectiveMat.view = 'angle';
+      else if (bikeImages.left) effectiveMat.view = 'left';
+      else if (bikeImages.right) effectiveMat.view = 'right';
+    }
+
+    var defaultParams = { x:50, y:50, scale:100, rotate:0, bgColor: mat.defaultTint || config.bgColor, transparent:(mat.bg==='transparent' || mat.fit==='tinted-image'),
+      gradientTop: mat.layers && mat.layers[1] ? mat.layers[1].gradientTop : null,
+      gradientBottom: mat.layers && mat.layers[1] ? mat.layers[1].gradientBottom : null
+    };
+    var canvas = renderMaterial(effectiveMat, config, defaultParams);
+
+    // 存储素材数据
+    materialItems.push({
+      mat: effectiveMat,
+      params: defaultParams,
+      canvas: canvas
+    });
+
+    // 创建卡片
+    var card = document.createElement('div');
+    card.className = 'material-card';
+    card.dataset.cat = mat.cat;
+    card.dataset.idx = idx;
+
+    var catColor = CAT_COLORS[mat.cat] || '#999';
+    card.innerHTML =
+      '<div class="card-header">' +
+        '<h3><span class="cat-tag" style="background:' + catColor + '">' + mat.cat + '</span>' + mat.name + '</h3>' +
+        '<span class="size-tag">' + mat.w + '×' + mat.h + '</span>' +
+      '</div>' +
+      '<div class="card-canvas"></div>' +
+      '<div class="card-actions">' +
+        '<button class="btn btn-sm btn-primary" onclick="openEdit(' + idx + ')">✏️ 编辑</button>' +
+        '<button class="btn btn-sm btn-success" onclick="exportOne(' + idx + ')">💾 导出</button>' +
+      '</div>';
+
+    card.querySelector('.card-canvas').appendChild(canvas);
+    grid.appendChild(card);
+  });
+
+  applyFilter();
+  info.textContent = '已生成 ' + MATERIALS.length + ' 张素材';
+}
+
+// ========== 编辑弹窗 ==========
+function openEdit(idx) {
+  currentEditIndex = idx;
+  var item = materialItems[idx];
+  var mat = item.mat;
+  var params = item.params;
+  var config = getConfig();
+
+  document.getElementById('modal-title').textContent = '编辑 - ' + mat.name + ' (' + mat.w + '×' + mat.h + ')';
+  document.getElementById('edit-x').value = params.x;
+  document.getElementById('edit-y').value = params.y;
+  document.getElementById('edit-scale').value = params.scale;
+  document.getElementById('edit-rotate').value = params.rotate;
+  document.getElementById('edit-bg').value = params.bgColor;
+  document.getElementById('edit-bg-picker').value = params.bgColor;
+  document.getElementById('edit-transparent').checked = params.transparent;
+
+  document.getElementById('val-x').textContent = params.x + '%';
+  document.getElementById('val-y').textContent = params.y + '%';
+  document.getElementById('val-scale').textContent = params.scale + '%';
+  document.getElementById('val-rotate').textContent = params.rotate + '°';
+
+  // 文案编辑控件
+  var textEditCtrl = document.getElementById('text-edit-controls');
+  if (mat.hasText) {
+    textEditCtrl.style.display = 'block';
+    document.getElementById('edit-text').value = params.customText || '';
+    var textGradCtrl = document.getElementById('text-grad-controls');
+    if (mat.textGradient) {
+      textGradCtrl.style.display = 'block';
+      var tgt = params.textGradTop || mat.textGradTop;
+      var tgb = params.textGradBottom || mat.textGradBottom;
+      document.getElementById('edit-text-grad-top').value = tgt;
+      document.getElementById('edit-text-grad-top-text').value = tgt;
+      document.getElementById('edit-text-grad-bottom').value = tgb;
+      document.getElementById('edit-text-grad-bottom-text').value = tgb;
+    } else {
+      textGradCtrl.style.display = 'none';
+    }
+  } else {
+    textEditCtrl.style.display = 'none';
+  }
+
+  // layered 素材的额外控件
+  var layeredCtrl = document.getElementById('layered-controls');
+  var genericCtrl = document.getElementById('generic-controls');
+  if (mat.fit === 'layered') {
+    genericCtrl.style.display = 'none';
+    layeredCtrl.style.display = 'block';
+    // 显示/隐藏替换背景上传区
+    var hasReplaceableBg = mat.layers && mat.layers.some(function(l){ return l.type === 'replaceable-bg'; });
+    document.getElementById('replaceable-bg-upload').style.display = hasReplaceableBg ? 'block' : 'none';
+    // 细节图上传区
+    var hasDetailSlots = mat.detailSlots > 0;
+    document.getElementById('detail-upload-controls').style.display = hasDetailSlots ? 'block' : 'none';
+    // 隐藏没有 icon-view 图层的 Icon 控件
+    var hasIconView = mat.layers && mat.layers.some(function(l){ return l.type === 'icon-view' || l.type === 'tinted-icon'; });
+    document.getElementById('icon-controls-section').style.display = hasIconView ? 'block' : 'none';
+    // 纯色图层控件（也包括 tinted-icon）
+    var hasSolidLayer = mat.layers && mat.layers.some(function(l){ return l.type === 'tinted-solid' || l.type === 'tinted-icon'; });
+    var solidSection = document.getElementById('solid-color-section');
+    if (hasSolidLayer) {
+      solidSection.style.display = 'block';
+      var solidLayer = mat.layers.find(function(l){ return l.type === 'tinted-solid' || l.type === 'tinted-icon'; });
+      var sc = params.solidColor || (solidLayer && solidLayer.tintColor) || '#31384b';
+      document.getElementById('edit-solid-color').value = sc;
+      document.getElementById('edit-solid-color-text').value = sc;
+    } else {
+      solidSection.style.display = 'none';
+    }
+    // c1 文案控件
+    var hasC1Text = mat.layers && mat.layers.some(function(l){ return l.type === 'c1-text'; });
+    var c1tc = document.getElementById('c1-text-controls');
+    if (hasC1Text && mat.c1Text) {
+      c1tc.style.display = 'block';
+      var ct = mat.c1Text;
+      document.getElementById('edit-c1-sub').value = params.c1SubText || ct.subText;
+      document.getElementById('edit-c1-main').value = params.c1MainText || ct.mainText;
+      var mc1 = params.c1MainColor || ct.mainColor;
+      document.getElementById('edit-c1-main-color').value = mc1;
+      document.getElementById('edit-c1-main-color-text').value = mc1;
+      var c1tx = params.c1TextX != null ? params.c1TextX : ct.textX;
+      var c1ty = params.c1TextY != null ? params.c1TextY : ct.textY;
+      document.getElementById('edit-c1-tx').value = c1tx;
+      document.getElementById('edit-c1-ty').value = c1ty;
+      document.getElementById('val-c1-tx').textContent = c1tx + '%';
+      document.getElementById('val-c1-ty').textContent = c1ty + '%';
+      var c1ts = params.c1TextScale != null ? params.c1TextScale : (ct.textScale || 100);
+      document.getElementById('edit-c1-ts').value = c1ts;
+      document.getElementById('val-c1-ts').textContent = c1ts + '%';
+    } else {
+      c1tc.style.display = 'none';
+    }
+    // d1 高光文案控件
+    var hasD1Text = mat.layers && mat.layers.some(function(l){ return l.type === 'd1-text'; });
+    var d1tc = document.getElementById('d1-text-controls');
+    if (hasD1Text && mat.d1Text) {
+      d1tc.style.display = 'block';
+      var dt = mat.d1Text;
+      document.getElementById('edit-d1-text').value = params.d1Text || dt.text;
+      var d1tc_ = params.d1TextColor || dt.textColor;
+      document.getElementById('edit-d1-tc').value = d1tc_;
+      document.getElementById('edit-d1-tc-text').value = d1tc_;
+      var d1sc = params.d1StrokeColor || dt.strokeColor;
+      document.getElementById('edit-d1-sc').value = d1sc;
+      document.getElementById('edit-d1-sc-text').value = d1sc;
+      document.getElementById('edit-d1-fs').value = params.d1FontSize || dt.fontSize;
+      document.getElementById('edit-d1-sw').value = params.d1StrokeWidth != null ? params.d1StrokeWidth : dt.strokeWidth;
+      var d1tx = params.d1TextX != null ? params.d1TextX : dt.textX;
+      var d1ty = params.d1TextY != null ? params.d1TextY : dt.textY;
+      document.getElementById('edit-d1-tx').value = d1tx;
+      document.getElementById('edit-d1-ty').value = d1ty;
+      document.getElementById('val-d1-tx').textContent = d1tx + '%';
+      document.getElementById('val-d1-ty').textContent = d1ty + '%';
+      var d1ts = params.d1TextScale != null ? params.d1TextScale : 100;
+      document.getElementById('edit-d1-ts').value = d1ts;
+      document.getElementById('val-d1-ts').textContent = d1ts + '%';
+      var d1tr = params.d1TextRotate || 0;
+      document.getElementById('edit-d1-tr').value = d1tr;
+      document.getElementById('val-d1-tr').textContent = d1tr + '°';
+    } else {
+      d1tc.style.display = 'none';
+    }
+    // d3 高光分享文案控件
+    var hasD3Text = mat.layers && mat.layers.some(function(l){ return l.type === 'd3-text'; });
+    var d3tc = document.getElementById('d3-text-controls');
+    if (hasD3Text && mat.d3Text) {
+      d3tc.style.display = 'block';
+      var d3t = mat.d3Text;
+      document.getElementById('edit-d3-top').value = params.d3TopText || d3t.topText;
+      document.getElementById('edit-d3-bot').value = params.d3BottomText || d3t.bottomText;
+      document.getElementById('edit-d3-tfs').value = params.d3TopFontSize || d3t.topFontSize;
+      document.getElementById('edit-d3-bfs').value = params.d3BottomFontSize || d3t.bottomFontSize;
+      var d3tc_ = params.d3TextColor || d3t.textColor;
+      document.getElementById('edit-d3-tc').value = d3tc_;
+      document.getElementById('edit-d3-tc-text').value = d3tc_;
+      var d3tx = params.d3TextX != null ? params.d3TextX : d3t.textX;
+      var d3ty = params.d3TextY != null ? params.d3TextY : d3t.textY;
+      document.getElementById('edit-d3-tx').value = d3tx;
+      document.getElementById('edit-d3-ty').value = d3ty;
+      document.getElementById('val-d3-tx').textContent = d3tx + '%';
+      document.getElementById('val-d3-ty').textContent = d3ty + '%';
+      var d3ts = params.d3TextScale != null ? params.d3TextScale : 100;
+      document.getElementById('edit-d3-ts').value = d3ts;
+      document.getElementById('val-d3-ts').textContent = d3ts + '%';
+    } else {
+      d3tc.style.display = 'none';
+    }
+    // e1 场景卡文案控件
+    var hasE1Text = mat.layers && mat.layers.some(function(l){ return l.type === 'e1-text'; });
+    var e1tc = document.getElementById('e1-text-controls');
+    if (hasE1Text && mat.e1Text) {
+      e1tc.style.display = 'block';
+      document.getElementById('edit-e1-prefix').value = params.e1Prefix || mat.e1Text.prefix;
+      document.getElementById('edit-e1-name').value = params.e1Name || config.name;
+      var nc = params.e1NameColor || mat.e1Text.nameColor;
+      document.getElementById('edit-e1-name-color').value = nc;
+      document.getElementById('edit-e1-name-color-text').value = nc;
+    } else {
+      e1tc.style.display = 'none';
+    }
+    if (hasDetailSlots) {
+      for (var di = 1; di <= 3; di++) {
+        var detailDefaults2 = [{ x:17, y:74, scale:44 }, { x:48, y:72, scale:43 }, { x:82, y:74, scale:46 }];
+        var dp = params['detail' + di] || detailDefaults2[di - 1];
+        var dxEl = document.getElementById('d' + di + '-x');
+        if (dxEl) { dxEl.value = dp.x; }
+        var dyEl = document.getElementById('d' + di + '-y');
+        if (dyEl) { dyEl.value = dp.y; }
+        var dsEl = document.getElementById('d' + di + '-s');
+        if (dsEl) { dsEl.value = dp.scale; }
+      }
+    }
+    // B1 文案控件
+    var hasB1Text = mat.layers && mat.layers.some(function(l){ return l.type === 'b1-text'; });
+    var b1tc = document.getElementById('b1-text-controls');
+    if (hasB1Text && mat.b1Text) {
+      b1tc.style.display = 'block';
+      var bt = mat.b1Text;
+      document.getElementById('edit-b1-prefix').value = params.b1Prefix != null ? params.b1Prefix : bt.prefix;
+      document.getElementById('edit-b1-suffix').value = params.b1Suffix != null ? params.b1Suffix : bt.suffix;
+      document.getElementById('edit-b1-fs').value = params.b1FontSize || bt.fontSize;
+      document.getElementById('edit-b1-sfs').value = params.b1SpecialFontSize || bt.specialFontSize;
+      document.getElementById('edit-b1-tc').value = params.b1TextColor || bt.textColor;
+      document.getElementById('edit-b1-spc').value = params.b1SpecialColor || bt.specialColor;
+      document.getElementById('edit-b1-sc').value = params.b1StrokeColor || bt.strokeColor;
+      document.getElementById('edit-b1-sw').value = params.b1StrokeWidth != null ? params.b1StrokeWidth : bt.strokeWidth;
+      document.getElementById('edit-b1-tx').value = params.b1TextX != null ? params.b1TextX : bt.textX;
+      document.getElementById('edit-b1-ty').value = params.b1TextY != null ? params.b1TextY : bt.textY;
+      document.getElementById('val-b1-tx').textContent = (params.b1TextX != null ? params.b1TextX : bt.textX) + '%';
+      document.getElementById('val-b1-ty').textContent = (params.b1TextY != null ? params.b1TextY : bt.textY) + '%';
+    } else {
+      b1tc.style.display = 'none';
+    }
+    // 从 layers 中读取渐变色默认值
+    var defaultGT = '#198eff', defaultGB = '#a7d4ff';
+    if (mat.layers) {
+      mat.layers.forEach(function(l) {
+        if (l.type === 'tinted-gradient') { defaultGT = l.gradientTop || defaultGT; defaultGB = l.gradientBottom || defaultGB; }
+      });
+    }
+    var gt = params.gradientTop || defaultGT;
+    var gb = params.gradientBottom || defaultGB;
+    document.getElementById('edit-grad-top').value = gt;
+    document.getElementById('edit-grad-top-text').value = gt;
+    document.getElementById('edit-grad-bottom').value = gb;
+    document.getElementById('edit-grad-bottom-text').value = gb;
+    // 中间色节点
+    var hasGradMid = mat.layers && mat.layers.some(function(l){ return l.gradientMid; });
+    var gradMidSection = document.getElementById('grad-mid-section');
+    if (hasGradMid) {
+      gradMidSection.style.display = 'block';
+      var midLayer = mat.layers.find(function(l){ return l.gradientMid; });
+      var gm = params.gradientMid || midLayer.gradientMid;
+      document.getElementById('edit-grad-mid').value = gm;
+      document.getElementById('edit-grad-mid-text').value = gm;
+    } else {
+      gradMidSection.style.display = 'none';
+    }
+    // 第四色渐变节点
+    var hasGradMid2 = mat.layers && mat.layers.some(function(l){ return l.gradientMid2; });
+    var gradMid2Section = document.getElementById('grad-mid2-section');
+    if (hasGradMid2) {
+      gradMid2Section.style.display = 'block';
+      var mid2Layer = mat.layers.find(function(l){ return l.gradientMid2; });
+      var gm2 = params.gradientMid2 || mid2Layer.gradientMid2;
+      document.getElementById('edit-grad-mid2').value = gm2;
+      document.getElementById('edit-grad-mid2-text').value = gm2;
+    } else {
+      gradMid2Section.style.display = 'none';
+    }
+    // bike-view 车辆图控件
+    var hasBikeView = mat.layers && mat.layers.some(function(l){ return l.type === 'bike-view'; });
+    var bvCtrl = document.getElementById('bike-view-controls');
+    if (hasBikeView) {
+      bvCtrl.style.display = 'block';
+      var bvLayer = mat.layers.find(function(l){ return l.type === 'bike-view'; });
+      var bvx = params.bikeViewX != null ? params.bikeViewX : (bvLayer.defaultX || 50);
+      var bvy = params.bikeViewY != null ? params.bikeViewY : (bvLayer.defaultY || 50);
+      var bvs = params.bikeViewScale != null ? params.bikeViewScale : (bvLayer.defaultScale || 100);
+      var bvr = params.bikeViewRotate || 0;
+      document.getElementById('edit-bv-x').value = bvx;
+      document.getElementById('edit-bv-y').value = bvy;
+      document.getElementById('edit-bv-scale').value = bvs;
+      document.getElementById('edit-bv-rotate').value = bvr;
+      document.getElementById('val-bv-x').textContent = bvx + '%';
+      document.getElementById('val-bv-y').textContent = bvy + '%';
+      document.getElementById('val-bv-scale').textContent = bvs + '%';
+      document.getElementById('val-bv-rotate').textContent = bvr + '°';
+    } else {
+      bvCtrl.style.display = 'none';
+    }
+    document.getElementById('edit-icon-x').value = params.iconX != null ? params.iconX : (mat.defaultIconX || 50);
+    document.getElementById('edit-icon-y').value = params.iconY != null ? params.iconY : (mat.defaultIconY || 45);
+    document.getElementById('edit-icon-scale').value = params.iconScale != null ? params.iconScale : (mat.defaultIconScale || 55);
+    document.getElementById('edit-icon-rotate').value = params.iconRotate || 0;
+    document.getElementById('val-icon-x').textContent = (params.iconX != null ? params.iconX : (mat.defaultIconX || 50)) + '%';
+    document.getElementById('val-icon-y').textContent = (params.iconY != null ? params.iconY : (mat.defaultIconY || 45)) + '%';
+    document.getElementById('val-icon-scale').textContent = (params.iconScale != null ? params.iconScale : (mat.defaultIconScale || 55)) + '%';
+    document.getElementById('val-icon-rotate').textContent = (params.iconRotate || 0) + '°';
+  } else {
+    genericCtrl.style.display = 'block';
+    layeredCtrl.style.display = 'none';
+  }
+
+  renderModalCanvas();
+  document.getElementById('edit-modal').classList.add('show');
+}
+
+function closeModal() {
+  document.getElementById('edit-modal').classList.remove('show');
+  currentEditIndex = -1;
+}
+
+function handleDetailUpload(idx, input) {
+  var file = input.files[0];
+  if (!file) return;
+  var reader = new FileReader();
+  reader.onload = function(e) {
+    var img = new Image();
+    img.onload = function() {
+      bikeImages['detail' + idx] = img;
+      document.getElementById('detail' + idx + '-text').textContent = '✅';
+      onEditChange();
+    };
+    img.src = e.target.result;
+  };
+  reader.readAsDataURL(file);
+}
+
+function handleBgUpload(input) {
+  var file = input.files[0];
+  if (!file) return;
+  var reader = new FileReader();
+  reader.onload = function(e) {
+    var img = new Image();
+    img.onload = function() {
+      bikeImages.b1bg = img;
+      document.getElementById('b1bg-upload-text').textContent = '✅ 已替换';
+      onEditChange();
+    };
+    img.src = e.target.result;
+  };
+  reader.readAsDataURL(file);
+}
+
+function handleB6BgUpload(input) {
+  var file = input.files[0];
+  if (!file) return;
+  var reader = new FileReader();
+  reader.onload = function(e) {
+    var img = new Image();
+    img.onload = function() {
+      bikeImages.b6bg = img;
+      document.getElementById('b6bg-upload-text').textContent = '✅ 已替换';
+      onEditChange();
+    };
+    img.src = e.target.result;
+  };
+  reader.readAsDataURL(file);
+}
+
+function handleB6BikeUpload(input) {
+  var file = input.files[0];
+  if (!file) return;
+  var reader = new FileReader();
+  reader.onload = function(e) {
+    var img = new Image();
+    img.onload = function() {
+      bikeImages.b6bike = img;
+      document.getElementById('b6bike-upload-text').textContent = '✅ 已替换';
+      onEditChange();
+    };
+    img.src = e.target.result;
+  };
+  reader.readAsDataURL(file);
+}
+
+function onTextGradTextChange(pos) {
+  var textEl = document.getElementById('edit-text-grad-' + pos + '-text');
+  var pickerEl = document.getElementById('edit-text-grad-' + pos);
+  var val = textEl.value.trim();
+  if (/^#[0-9a-fA-F]{6}$/.test(val)) { pickerEl.value = val; onEditChange(); }
+}
+
+function onGradTextChange(pos) {
+  var textEl = document.getElementById('edit-grad-' + pos + '-text');
+  var pickerEl = document.getElementById('edit-grad-' + pos);
+  var val = textEl.value.trim();
+  if (/^#[0-9a-fA-F]{6}$/.test(val)) {
+    pickerEl.value = val;
+    onEditChange();
+  }
+}
+
+function onSolidColorTextChange() {
+  var textEl = document.getElementById('edit-solid-color-text');
+  var pickerEl = document.getElementById('edit-solid-color');
+  var val = textEl.value.trim();
+  if (/^#[0-9a-fA-F]{6}$/.test(val)) {
+    pickerEl.value = val;
+    onEditChange();
+  }
+}
+
+function onC1ColorTextChange(which) {
+  var textEl = document.getElementById('edit-c1-' + which + '-color-text');
+  var pickerEl = document.getElementById('edit-c1-' + which + '-color');
+  var val = textEl.value.trim();
+  if (/^#[0-9a-fA-F]{6}$/.test(val)) {
+    pickerEl.value = val;
+    onEditChange();
+  }
+}
+
+function onD1ColorTextChange(which) {
+  var textEl = document.getElementById('edit-d1-' + which + '-text');
+  var pickerEl = document.getElementById('edit-d1-' + which);
+  var val = textEl.value.trim();
+  if (/^#[0-9a-fA-F]{6}$/.test(val)) {
+    pickerEl.value = val;
+    onEditChange();
+  }
+}
+
+function onE1ColorTextChange() {
+  var textEl = document.getElementById('edit-e1-name-color-text');
+  var pickerEl = document.getElementById('edit-e1-name-color');
+  var val = textEl.value.trim();
+  if (/^#[0-9a-fA-F]{6}$/.test(val)) {
+    pickerEl.value = val;
+    onEditChange();
+  }
+}
+
+function onEditPickerChange() {
+  var val = document.getElementById('edit-bg-picker').value;
+  document.getElementById('edit-bg').value = val;
+  onEditChange();
+}
+
+function onEditBgInput() {
+  var val = document.getElementById('edit-bg').value.trim();
+  if (/^#[0-9a-fA-F]{6}$/.test(val)) {
+    document.getElementById('edit-bg-picker').value = val;
+    onEditChange();
+  }
+}
+
+function onEditChange() {
+  var x = parseInt(document.getElementById('edit-x').value);
+  var y = parseInt(document.getElementById('edit-y').value);
+  var scale = parseInt(document.getElementById('edit-scale').value);
+  var rotate = parseInt(document.getElementById('edit-rotate').value);
+
+  document.getElementById('val-x').textContent = x + '%';
+  document.getElementById('val-y').textContent = y + '%';
+  document.getElementById('val-scale').textContent = scale + '%';
+  document.getElementById('val-rotate').textContent = rotate + '°';
+
+  renderModalCanvas();
+}
+
+function renderModalCanvas() {
+  if (currentEditIndex < 0) return;
+  var item = materialItems[currentEditIndex];
+  var config = getConfig();
+  var params = {
+    x: parseInt(document.getElementById('edit-x').value),
+    y: parseInt(document.getElementById('edit-y').value),
+    scale: parseInt(document.getElementById('edit-scale').value),
+    rotate: parseInt(document.getElementById('edit-rotate').value),
+    bgColor: document.getElementById('edit-bg').value,
+    transparent: document.getElementById('edit-transparent').checked,
+  };
+
+  // 文案编辑参数
+  if (item.mat.hasText) {
+    params.customText = document.getElementById('edit-text').value;
+    if (item.mat.textGradient) {
+      params.textGradTop = document.getElementById('edit-text-grad-top').value;
+      params.textGradBottom = document.getElementById('edit-text-grad-bottom').value;
+      document.getElementById('edit-text-grad-top-text').value = params.textGradTop;
+      document.getElementById('edit-text-grad-bottom-text').value = params.textGradBottom;
+    }
+  }
+
+  // layered 素材的额外参数
+  if (item.mat.fit === 'layered') {
+    params.gradientTop = document.getElementById('edit-grad-top').value;
+    params.gradientBottom = document.getElementById('edit-grad-bottom').value;
+    document.getElementById('edit-grad-top-text').value = params.gradientTop;
+    document.getElementById('edit-grad-bottom-text').value = params.gradientBottom;
+    // 纯色图层参数
+    var solidEl = document.getElementById('edit-solid-color');
+    if (solidEl && document.getElementById('solid-color-section').style.display !== 'none') {
+      params.solidColor = solidEl.value;
+      document.getElementById('edit-solid-color-text').value = params.solidColor;
+    }
+    // 中间色参数
+    if (document.getElementById('grad-mid-section').style.display !== 'none') {
+      params.gradientMid = document.getElementById('edit-grad-mid').value;
+      document.getElementById('edit-grad-mid-text').value = params.gradientMid;
+    }
+    // 中间色2参数
+    if (document.getElementById('grad-mid2-section').style.display !== 'none') {
+      params.gradientMid2 = document.getElementById('edit-grad-mid2').value;
+      document.getElementById('edit-grad-mid2-text').value = params.gradientMid2;
+    }
+    // bike-view 参数
+    if (document.getElementById('bike-view-controls').style.display !== 'none') {
+      params.bikeViewX = parseInt(document.getElementById('edit-bv-x').value);
+      params.bikeViewY = parseInt(document.getElementById('edit-bv-y').value);
+      params.bikeViewScale = parseInt(document.getElementById('edit-bv-scale').value);
+      params.bikeViewRotate = parseInt(document.getElementById('edit-bv-rotate').value);
+      document.getElementById('val-bv-x').textContent = params.bikeViewX + '%';
+      document.getElementById('val-bv-y').textContent = params.bikeViewY + '%';
+      document.getElementById('val-bv-scale').textContent = params.bikeViewScale + '%';
+      document.getElementById('val-bv-rotate').textContent = params.bikeViewRotate + '°';
+    }
+    // c1 文案参数
+    if (document.getElementById('c1-text-controls').style.display !== 'none') {
+      params.c1SubText = document.getElementById('edit-c1-sub').value;
+      params.c1MainText = document.getElementById('edit-c1-main').value;
+      params.c1MainColor = document.getElementById('edit-c1-main-color').value;
+      document.getElementById('edit-c1-main-color-text').value = params.c1MainColor;
+      params.c1TextX = parseInt(document.getElementById('edit-c1-tx').value);
+      params.c1TextY = parseInt(document.getElementById('edit-c1-ty').value);
+      params.c1TextScale = parseInt(document.getElementById('edit-c1-ts').value);
+      document.getElementById('val-c1-tx').textContent = params.c1TextX + '%';
+      document.getElementById('val-c1-ty').textContent = params.c1TextY + '%';
+      document.getElementById('val-c1-ts').textContent = params.c1TextScale + '%';
+    }
+    // d1 高光文案参数
+    if (document.getElementById('d1-text-controls').style.display !== 'none') {
+      params.d1Text = document.getElementById('edit-d1-text').value;
+      params.d1TextColor = document.getElementById('edit-d1-tc').value;
+      document.getElementById('edit-d1-tc-text').value = params.d1TextColor;
+      params.d1StrokeColor = document.getElementById('edit-d1-sc').value;
+      document.getElementById('edit-d1-sc-text').value = params.d1StrokeColor;
+      params.d1FontSize = parseInt(document.getElementById('edit-d1-fs').value);
+      params.d1StrokeWidth = parseInt(document.getElementById('edit-d1-sw').value);
+      params.d1TextX = parseInt(document.getElementById('edit-d1-tx').value);
+      params.d1TextY = parseInt(document.getElementById('edit-d1-ty').value);
+      params.d1TextScale = parseInt(document.getElementById('edit-d1-ts').value);
+      params.d1TextRotate = parseInt(document.getElementById('edit-d1-tr').value);
+      document.getElementById('val-d1-tx').textContent = params.d1TextX + '%';
+      document.getElementById('val-d1-ty').textContent = params.d1TextY + '%';
+      document.getElementById('val-d1-ts').textContent = params.d1TextScale + '%';
+      document.getElementById('val-d1-tr').textContent = params.d1TextRotate + '°';
+    }
+    // d3 高光分享文案参数
+    if (document.getElementById('d3-text-controls').style.display !== 'none') {
+      params.d3TopText = document.getElementById('edit-d3-top').value;
+      params.d3BottomText = document.getElementById('edit-d3-bot').value;
+      params.d3TopFontSize = parseInt(document.getElementById('edit-d3-tfs').value);
+      params.d3BottomFontSize = parseInt(document.getElementById('edit-d3-bfs').value);
+      params.d3TextColor = document.getElementById('edit-d3-tc').value;
+      document.getElementById('edit-d3-tc-text').value = params.d3TextColor;
+      params.d3TextX = parseInt(document.getElementById('edit-d3-tx').value);
+      params.d3TextY = parseInt(document.getElementById('edit-d3-ty').value);
+      params.d3TextScale = parseInt(document.getElementById('edit-d3-ts').value);
+      document.getElementById('val-d3-tx').textContent = params.d3TextX + '%';
+      document.getElementById('val-d3-ty').textContent = params.d3TextY + '%';
+      document.getElementById('val-d3-ts').textContent = params.d3TextScale + '%';
+    }
+    // e1 场景卡参数
+    if (document.getElementById('e1-text-controls').style.display !== 'none') {
+      params.e1Prefix = document.getElementById('edit-e1-prefix').value;
+      params.e1Name = document.getElementById('edit-e1-name').value;
+      params.e1NameColor = document.getElementById('edit-e1-name-color').value;
+      document.getElementById('edit-e1-name-color-text').value = params.e1NameColor;
+    }
+    params.iconX = parseInt(document.getElementById('edit-icon-x').value);
+    params.iconY = parseInt(document.getElementById('edit-icon-y').value);
+    params.iconScale = parseInt(document.getElementById('edit-icon-scale').value);
+    params.iconRotate = parseInt(document.getElementById('edit-icon-rotate').value);
+    document.getElementById('val-icon-x').textContent = params.iconX + '%';
+    document.getElementById('val-icon-y').textContent = params.iconY + '%';
+    document.getElementById('val-icon-scale').textContent = params.iconScale + '%';
+    document.getElementById('val-icon-rotate').textContent = params.iconRotate + '°';
+    // 细节图参数
+    if (item.mat.detailSlots) {
+      for (var di = 1; di <= 3; di++) {
+        var dxEl = document.getElementById('d' + di + '-x');
+        if (dxEl) {
+          params['detail' + di] = {
+            x: parseInt(dxEl.value),
+            y: parseInt(document.getElementById('d' + di + '-y').value),
+            scale: parseInt(document.getElementById('d' + di + '-s').value)
+          };
+        }
+      }
+    }
+    // B1 文案参数
+    if (item.mat.b1Text) {
+      params.b1Prefix = document.getElementById('edit-b1-prefix').value;
+      params.b1Suffix = document.getElementById('edit-b1-suffix').value;
+      params.b1FontSize = parseInt(document.getElementById('edit-b1-fs').value);
+      params.b1SpecialFontSize = parseInt(document.getElementById('edit-b1-sfs').value);
+      params.b1TextColor = document.getElementById('edit-b1-tc').value;
+      params.b1SpecialColor = document.getElementById('edit-b1-spc').value;
+      params.b1StrokeColor = document.getElementById('edit-b1-sc').value;
+      params.b1StrokeWidth = parseInt(document.getElementById('edit-b1-sw').value);
+      params.b1TextX = parseInt(document.getElementById('edit-b1-tx').value);
+      params.b1TextY = parseInt(document.getElementById('edit-b1-ty').value);
+      document.getElementById('val-b1-tx').textContent = params.b1TextX + '%';
+      document.getElementById('val-b1-ty').textContent = params.b1TextY + '%';
+    }
+  }
+
+  var modalCanvas = document.getElementById('modal-canvas');
+  var tempCanvas = renderMaterial(item.mat, config, params);
+  // 弹窗 canvas 用原始尺寸显示，从高清 canvas 缩放绘制
+  modalCanvas.width = item.mat.w;
+  modalCanvas.height = item.mat.h;
+  var mCtx = modalCanvas.getContext('2d');
+  mCtx.clearRect(0, 0, item.mat.w, item.mat.h);
+  mCtx.drawImage(tempCanvas, 0, 0, item.mat.w, item.mat.h);
+}
+
+function applyEdit() {
+  if (currentEditIndex < 0) return;
+  var item = materialItems[currentEditIndex];
+  var config = getConfig();
+  var params = {
+    x: parseInt(document.getElementById('edit-x').value),
+    y: parseInt(document.getElementById('edit-y').value),
+    scale: parseInt(document.getElementById('edit-scale').value),
+    rotate: parseInt(document.getElementById('edit-rotate').value),
+    bgColor: document.getElementById('edit-bg').value,
+    transparent: document.getElementById('edit-transparent').checked,
+  };
+
+  // 文案编辑保存
+  if (item.mat.hasText) {
+    params.customText = document.getElementById('edit-text').value;
+    if (item.mat.textGradient) {
+      params.textGradTop = document.getElementById('edit-text-grad-top').value;
+      params.textGradBottom = document.getElementById('edit-text-grad-bottom').value;
+    }
+  }
+
+  // layered 素材保存额外参数
+  if (item.mat.fit === 'layered') {
+    params.gradientTop = document.getElementById('edit-grad-top').value;
+    params.gradientBottom = document.getElementById('edit-grad-bottom').value;
+    // 纯色图层参数保存
+    var solidEl2 = document.getElementById('edit-solid-color');
+    if (solidEl2 && document.getElementById('solid-color-section').style.display !== 'none') {
+      params.solidColor = solidEl2.value;
+    }
+    // 中间色参数保存
+    if (document.getElementById('grad-mid-section').style.display !== 'none') {
+      params.gradientMid = document.getElementById('edit-grad-mid').value;
+    }
+    // 中间色2参数保存
+    if (document.getElementById('grad-mid2-section').style.display !== 'none') {
+      params.gradientMid2 = document.getElementById('edit-grad-mid2').value;
+    }
+    // bike-view 参数保存
+    if (document.getElementById('bike-view-controls').style.display !== 'none') {
+      params.bikeViewX = parseInt(document.getElementById('edit-bv-x').value);
+      params.bikeViewY = parseInt(document.getElementById('edit-bv-y').value);
+      params.bikeViewScale = parseInt(document.getElementById('edit-bv-scale').value);
+      params.bikeViewRotate = parseInt(document.getElementById('edit-bv-rotate').value);
+    }
+    // c1 文案参数保存
+    if (document.getElementById('c1-text-controls').style.display !== 'none') {
+      params.c1SubText = document.getElementById('edit-c1-sub').value;
+      params.c1MainText = document.getElementById('edit-c1-main').value;
+      params.c1MainColor = document.getElementById('edit-c1-main-color').value;
+      params.c1TextX = parseInt(document.getElementById('edit-c1-tx').value);
+      params.c1TextY = parseInt(document.getElementById('edit-c1-ty').value);
+      params.c1TextScale = parseInt(document.getElementById('edit-c1-ts').value);
+    }
+    // d1 高光文案参数保存
+    if (document.getElementById('d1-text-controls').style.display !== 'none') {
+      params.d1Text = document.getElementById('edit-d1-text').value;
+      params.d1TextColor = document.getElementById('edit-d1-tc').value;
+      params.d1StrokeColor = document.getElementById('edit-d1-sc').value;
+      params.d1FontSize = parseInt(document.getElementById('edit-d1-fs').value);
+      params.d1StrokeWidth = parseInt(document.getElementById('edit-d1-sw').value);
+      params.d1TextX = parseInt(document.getElementById('edit-d1-tx').value);
+      params.d1TextY = parseInt(document.getElementById('edit-d1-ty').value);
+      params.d1TextScale = parseInt(document.getElementById('edit-d1-ts').value);
+      params.d1TextRotate = parseInt(document.getElementById('edit-d1-tr').value);
+    }
+    // d3 高光分享文案参数保存
+    if (document.getElementById('d3-text-controls').style.display !== 'none') {
+      params.d3TopText = document.getElementById('edit-d3-top').value;
+      params.d3BottomText = document.getElementById('edit-d3-bot').value;
+      params.d3TopFontSize = parseInt(document.getElementById('edit-d3-tfs').value);
+      params.d3BottomFontSize = parseInt(document.getElementById('edit-d3-bfs').value);
+      params.d3TextColor = document.getElementById('edit-d3-tc').value;
+      params.d3TextX = parseInt(document.getElementById('edit-d3-tx').value);
+      params.d3TextY = parseInt(document.getElementById('edit-d3-ty').value);
+      params.d3TextScale = parseInt(document.getElementById('edit-d3-ts').value);
+    }
+    // d3 高光分享文案参数保存
+    if (document.getElementById('d3-text-controls').style.display !== 'none') {
+      params.d3TopText = document.getElementById('edit-d3-top').value;
+      params.d3BottomText = document.getElementById('edit-d3-bot').value;
+      params.d3TopFontSize = parseInt(document.getElementById('edit-d3-tfs').value);
+      params.d3BottomFontSize = parseInt(document.getElementById('edit-d3-bfs').value);
+      params.d3TextColor = document.getElementById('edit-d3-tc').value;
+      params.d3TextX = parseInt(document.getElementById('edit-d3-tx').value);
+      params.d3TextY = parseInt(document.getElementById('edit-d3-ty').value);
+      params.d3TextScale = parseInt(document.getElementById('edit-d3-ts').value);
+    }
+    // e1 场景卡参数保存
+    if (document.getElementById('e1-text-controls').style.display !== 'none') {
+      params.e1Prefix = document.getElementById('edit-e1-prefix').value;
+      params.e1Name = document.getElementById('edit-e1-name').value;
+      params.e1NameColor = document.getElementById('edit-e1-name-color').value;
+    }
+    params.iconX = parseInt(document.getElementById('edit-icon-x').value);
+    params.iconY = parseInt(document.getElementById('edit-icon-y').value);
+    params.iconScale = parseInt(document.getElementById('edit-icon-scale').value);
+    params.iconRotate = parseInt(document.getElementById('edit-icon-rotate').value);
+    // 细节图参数保存
+    if (item.mat.detailSlots) {
+      for (var di = 1; di <= 3; di++) {
+        var dxEl = document.getElementById('d' + di + '-x');
+        if (dxEl) {
+          params['detail' + di] = {
+            x: parseInt(dxEl.value),
+            y: parseInt(document.getElementById('d' + di + '-y').value),
+            scale: parseInt(document.getElementById('d' + di + '-s').value)
+          };
+        }
+      }
+    }
+    // B1 文案保存
+    if (item.mat.b1Text) {
+      params.b1Prefix = document.getElementById('edit-b1-prefix').value;
+      params.b1Suffix = document.getElementById('edit-b1-suffix').value;
+      params.b1FontSize = parseInt(document.getElementById('edit-b1-fs').value);
+      params.b1SpecialFontSize = parseInt(document.getElementById('edit-b1-sfs').value);
+      params.b1TextColor = document.getElementById('edit-b1-tc').value;
+      params.b1SpecialColor = document.getElementById('edit-b1-spc').value;
+      params.b1StrokeColor = document.getElementById('edit-b1-sc').value;
+      params.b1StrokeWidth = parseInt(document.getElementById('edit-b1-sw').value);
+      params.b1TextX = parseInt(document.getElementById('edit-b1-tx').value);
+      params.b1TextY = parseInt(document.getElementById('edit-b1-ty').value);
+    }
+  }
+
+  item.params = params;
+  var newCanvas = renderMaterial(item.mat, config, params);
+  item.canvas = newCanvas;
+
+  // 更新卡片中的canvas
+  var card = document.querySelector('.material-card[data-idx="' + currentEditIndex + '"]');
+  if (card) {
+    var wrap = card.querySelector('.card-canvas');
+    wrap.innerHTML = '';
+    wrap.appendChild(newCanvas);
+  }
+
+  // 颜色关联同步：同 colorGroup 的素材同步渐变色
+  if (item.mat.colorGroup && params.gradientTop) {
+    materialItems.forEach(function(other, otherIdx) {
+      if (otherIdx === currentEditIndex) return;
+      if (other.mat.colorGroup === item.mat.colorGroup) {
+        other.params.gradientTop = params.gradientTop;
+        other.params.gradientBottom = params.gradientBottom;
+        var otherCanvas = renderMaterial(other.mat, config, other.params);
+        other.canvas = otherCanvas;
+        var otherCard = document.querySelector('.material-card[data-idx="' + otherIdx + '"]');
+        if (otherCard) {
+          var otherWrap = otherCard.querySelector('.card-canvas');
+          otherWrap.innerHTML = '';
+          otherWrap.appendChild(otherCanvas);
+        }
+      }
+    });
+  }
+
+  closeModal();
+}
+
+// ========== 导出功能 ==========
+function exportOne(idx) {
+  var item = materialItems[idx];
+  if (!item) return;
+  var config = getConfig();
+  // 重新渲染一次确保最新
+  var canvas = renderMaterial(item.mat, config, item.params);
+  var link = document.createElement('a');
+  var fileName = item.mat.cat + '_' + item.mat.name + '_' + item.mat.w + 'x' + item.mat.h + '.png';
+  link.download = fileName;
+  link.href = canvas.toDataURL('image/png');
+  link.click();
+}
+
+function exportSingle() {
+  if (currentEditIndex >= 0) {
+    // 先应用编辑
+    applyEdit();
+    exportOne(currentEditIndex);
+  }
+}
+
+// 分类文件夹名称映射
+var CAT_FOLDERS = {
+  A: 'A-admin车辆样式配置',
+  B: 'B-admin靓车信息配置',
+  C: 'C-发现靓车活动页配置-发现靓车频道头图',
+  D: 'D-百灵骑行结束高光配置',
+  E: 'E-首页场景卡'
+};
+
+function exportAll() {
+  if (materialItems.length === 0) {
+    alert('请先生成素材');
+    return;
+  }
+  var config = getConfig();
+  var info = document.getElementById('progress-info');
+  var bikeName = config.name || '新车型';
+
+  info.textContent = '正在打包...';
+
+  var zip = new JSZip();
+  var total = materialItems.length;
+
+  materialItems.forEach(function(item, idx) {
+    var canvas = renderMaterial(item.mat, config, item.params);
+    var dataUrl = canvas.toDataURL('image/png');
+    var base64 = dataUrl.split(',')[1];
+    var folderName = CAT_FOLDERS[item.mat.cat] || item.mat.cat;
+    var fileName = item.mat.name + '_' + item.mat.w + 'x' + item.mat.h + '.png';
+    zip.folder(bikeName).folder(folderName).file(fileName, base64, { base64: true });
+  });
+
+  zip.generateAsync({ type: 'blob' }, function(metadata) {
+    info.textContent = '打包中 ' + Math.round(metadata.percent) + '%';
+  }).then(function(blob) {
+    var link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = bikeName + '-素材包.zip';
+    link.click();
+    URL.revokeObjectURL(link.href);
+    info.textContent = '已导出 ' + total + ' 张素材（ZIP）';
+  });
+}
+
+// ========== 键盘快捷键 ==========
+document.addEventListener('keydown', function(e) {
+  if (e.key === 'Escape') closeModal();
+});
+
+// ========== 页面加载后自动生成 ==========
+window.addEventListener('load', function() {
+  // 主动预加载造字工房元黑体，确保 Canvas 渲染时字体已就绪
+  var fontCheck = new FontFace('造字工房元黑体', 'url(fonts/MFYuanHei-Regular.otf)');
+  fontCheck.load().then(function(loadedFont) {
+    document.fonts.add(loadedFont);
+    setTimeout(function() {
+      if (bikeImages.left || bikeImages.right || bikeImages.angle) {
+        generateAll();
+      }
+    }, 300);
+  }).catch(function() {
+    // 字体加载失败也继续生成
+    setTimeout(function() {
+      if (bikeImages.left || bikeImages.right || bikeImages.angle) {
+        generateAll();
+      }
+    }, 300);
+  });
+});
+</script>
+</body>
+</html>
