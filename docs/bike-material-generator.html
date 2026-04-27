@@ -539,7 +539,7 @@ function handleUpload(type, input) {
   if (!file) return;
   var reader = new FileReader();
   reader.onload = function(e) {
-    var img = new Image(); img.crossOrigin = "anonymous";
+    var img = new Image(); if (location.protocol !== "file:") img.crossOrigin = "anonymous";
     img.onload = function() {
       bikeImages[type] = img;
       var area = document.getElementById('upload-' + type);
@@ -1311,7 +1311,7 @@ function preloadFixedImages(callback) {
   var loadingText = document.getElementById('loading-text');
   var loadingBar = document.getElementById('loading-bar');
   toLoad.forEach(function(src) {
-    var img = new Image(); img.crossOrigin = "anonymous";
+    var img = new Image(); if (location.protocol !== "file:") img.crossOrigin = "anonymous";
     img.onload = img.onerror = function() {
       fixedImageCache[src] = img;
       loaded++;
@@ -1334,7 +1334,7 @@ var DEFAULT_BIKES = {
 };
 (function loadDefaultBikes() {
   Object.keys(DEFAULT_BIKES).forEach(function(type) {
-    var img = new Image(); img.crossOrigin = "anonymous";
+    var img = new Image(); if (location.protocol !== "file:") img.crossOrigin = "anonymous";
     img.onload = function() {
       bikeImages[type] = img;
       var area = document.getElementById('upload-' + type);
@@ -1699,7 +1699,7 @@ function handleDetailUpload(idx, input) {
   if (!file) return;
   var reader = new FileReader();
   reader.onload = function(e) {
-    var img = new Image(); img.crossOrigin = "anonymous";
+    var img = new Image(); if (location.protocol !== "file:") img.crossOrigin = "anonymous";
     img.onload = function() {
       bikeImages['detail' + idx] = img;
       document.getElementById('detail' + idx + '-text').textContent = '✅';
@@ -1715,7 +1715,7 @@ function handleBgUpload(input) {
   if (!file) return;
   var reader = new FileReader();
   reader.onload = function(e) {
-    var img = new Image(); img.crossOrigin = "anonymous";
+    var img = new Image(); if (location.protocol !== "file:") img.crossOrigin = "anonymous";
     img.onload = function() {
       bikeImages.b1bg = img;
       document.getElementById('b1bg-upload-text').textContent = '✅ 已替换';
@@ -1731,7 +1731,7 @@ function handleB6BgUpload(input) {
   if (!file) return;
   var reader = new FileReader();
   reader.onload = function(e) {
-    var img = new Image(); img.crossOrigin = "anonymous";
+    var img = new Image(); if (location.protocol !== "file:") img.crossOrigin = "anonymous";
     img.onload = function() {
       bikeImages.b6bg = img;
       document.getElementById('b6bg-upload-text').textContent = '✅ 已替换';
@@ -1747,7 +1747,7 @@ function handleB6BikeUpload(input) {
   if (!file) return;
   var reader = new FileReader();
   reader.onload = function(e) {
-    var img = new Image(); img.crossOrigin = "anonymous";
+    var img = new Image(); if (location.protocol !== "file:") img.crossOrigin = "anonymous";
     img.onload = function() {
       bikeImages.b6bike = img;
       document.getElementById('b6bike-upload-text').textContent = '✅ 已替换';
