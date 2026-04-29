@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Teemo Portfolio Demo</title>
+    <meta
+      name="description"
+      content="个人作品集网站 demo，采用首页、个人介绍、作品分类、瀑布流画廊和联系页的单页排版。"
+    />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=Sora:wght@400;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <div class="ambient ambient-left"></div>
+    <div class="ambient ambient-right"></div>
+    <div class="ambient ambient-bottom"></div>
+
+    <div class="page-shell">
+      <header class="site-header">
+        <a class="brand" href="#home">TEEMO / WORKS</a>
+        <nav class="site-nav">
+          <a href="#home">Home</a>
+          <a href="#about">About</a>
+          <a href="#work">Work</a>
+          <a href="#gallery">Gallery</a>
+          <a href="#contact">Contact</a>
+        </nav>
+        <a class="header-chip" href="#contact">AVAILABLE NOW</a>
+      </header>
+
+      <main>
+        <section class="hero reveal" id="home">
+          <div class="hero-copy">
+            <p class="eyebrow">Portfolio Website Template</p>
+            <h1>
+              <span class="hero-title-main">Portfolio</span>
+              <span class="hero-title-sub">个人作品集首页</span>
+            </h1>
+            <h2>Teemo Wang / UI & Visual Designer</h2>
+            <div class="hero-meta">
+              <span>contact@teemo.design</span>
+              <span>Shanghai / Remote</span>
+              <span>Behance · Xiaohongshu · Zcool</span>
+            </div>
+            <p class="hero-text">
+              Focused on creating impactful digital visuals through brand thinking, interface aesthetics and expressive storytelling.
+            </p>
+            <div class="hero-actions">
+              <a class="button button-primary" href="#work">Explore Work</a>
+              <a class="button button-secondary" href="#about">View Profile</a>
+            </div>
+          </div>
+        </section>
+
+        <section class="about reveal" id="about">
+          <div class="section-title section-title-centered">
+            <p class="eyebrow">01 / About</p>
+            <h2>个人介绍</h2>
+          </div>
+
+          <div class="about-grid">
+            <article class="about-profile glass-card">
+              <div class="profile-card profile-card-inline">
+                <div class="profile-photo"></div>
+                <div class="profile-copy">
+                  <p class="profile-name">Teemo Wang</p>
+                  <p class="profile-role">Visual & Brand Designer</p>
+                </div>
+              </div>
+            </article>
+
+            <article class="intro-card glass-card">
+              <p class="intro-badge">Available for freelance</p>
+              <h3>About <span>Me</span></h3>
+              <p>
+                Passionate about design and visual expression, focused on creating impactful visuals with creativity
+                and strategy.
+              </p>
+              <div class="about-stats">
+                <article>
+                  <strong>5+</strong>
+                  <span>Years Experience</span>
+                </article>
+                <article>
+                  <strong>50+</strong>
+                  <span>Projects Completed</span>
+                </article>
+                <article>
+                  <strong>10+</strong>
+                  <span>Clients Worldwide</span>
+                </article>
+              </div>
+              <div class="contact-card">
+                <div class="contact-row">
+                  <span>Email</span>
+                  <strong>contact@teemo.design</strong>
+                </div>
+                <div class="contact-row">
+                  <span>WeChat</span>
+                  <strong>Teemo_UI</strong>
+                </div>
+                <div class="contact-row">
+                  <span>Zcool</span>
+                  <strong>Teemo Portfolio</strong>
+                </div>
+              </div>
+              <div class="tag-row">
+                <span>UI Design</span>
+                <span>Brand Visual</span>
+                <span>3D Render</span>
+                <span>Landing Page</span>
+              </div>
+            </article>
+          </div>
+        </section>
+
+        <section class="works reveal" id="work">
+          <div class="section-headline">
+            <div class="section-title section-title-centered">
+              <p class="eyebrow">02 / Selected Works</p>
+              <h2>作品分类</h2>
+            </div>
+          </div>
+
+          <div class="work-list">
+            <article class="work-item glass-card">
+              <button class="work-row" type="button" aria-expanded="false">
+                <span class="work-index">01</span>
+                <span class="work-name">Business Project</span>
+                <span class="work-type">WORK</span>
+                <span class="work-years">2021 - 2025</span>
+                <span class="work-arrow">↗</span>
+              </button>
+              <div class="work-drawer">
+                <article class="project-panel project-panel-inline">
+                  <div class="project-copy">
+                    <p class="project-kicker">Business Project</p>
+                    <h3>品牌活动 KV 与商业视觉整合</h3>
+                    <p>
+                      Building campaign key visuals, launch pages and branded motion assets for product communication.
+                    </p>
+                    <a class="button button-primary" href="#gallery">View Details</a>
+                  </div>
+                  <div class="project-preview coral">
+                    <div class="preview-window">
+                      <span class="preview-chip">AYGOL TODO</span>
+                      <strong>今天你的身份是<br />品牌活动主视觉设计师</strong>
+                    </div>
+                  </div>
+                </article>
+              </div>
+            </article>
+
+            <article class="work-item glass-card">
+              <button class="work-row" type="button" aria-expanded="false">
+                <span class="work-index">02</span>
+                <span class="work-name">Visual Project</span>
+                <span class="work-type">3D RENDER</span>
+                <span class="work-years">2021 - 2025</span>
+                <span class="work-arrow">↗</span>
+              </button>
+              <div class="work-drawer">
+                <article class="project-panel project-panel-inline">
+                  <div class="project-copy">
+                    <p class="project-kicker">Visual Project</p>
+                    <h3>角色海报、模型包装与风格化插画</h3>
+                    <p>
+                      Creating stylized posters, character imagery and visual packaging for narrative-driven concepts.
+                    </p>
+                    <a class="button button-primary" href="#gallery">Explore Gallery</a>
+                  </div>
+                  <div class="project-preview blue">
+                    <div class="preview-window">
+                      <span class="preview-chip">VISUAL SERIES</span>
+                      <strong>Character Set<br />Render & Poster</strong>
+                    </div>
+                  </div>
+                </article>
+              </div>
+            </article>
+
+            <article class="work-item glass-card">
+              <button class="work-row" type="button" aria-expanded="false">
+                <span class="work-index">03</span>
+                <span class="work-name">Gaming Visual Design</span>
+                <span class="work-type">AIGC</span>
+                <span class="work-years">2024 - 2026</span>
+                <span class="work-arrow">↗</span>
+              </button>
+              <div class="work-drawer">
+                <article class="project-panel project-panel-inline">
+                  <div class="project-copy">
+                    <p class="project-kicker">Gaming Visual</p>
+                    <h3>游戏题材包装与动态概念视觉</h3>
+                    <p>
+                      Designing concept-forward visuals for game campaigns, seasonal launches and immersive art direction.
+                    </p>
+                    <a class="button button-primary" href="#contact">Talk About It</a>
+                  </div>
+                  <div class="project-preview pink">
+                    <div class="preview-window">
+                      <span class="preview-chip">GAME CAMPAIGN</span>
+                      <strong>Season Launch<br />Key Visual System</strong>
+                    </div>
+                  </div>
+                </article>
+              </div>
+            </article>
+          </div>
+        </section>
+
+        <section class="gallery reveal" id="gallery">
+          <div class="section-headline">
+            <div class="section-title section-title-centered">
+              <p class="eyebrow">03 / Visual Exploration</p>
+              <h2>其他作品瀑布流</h2>
+            </div>
+          </div>
+
+          <div class="masonry-grid">
+            <article class="masonry-card tall warm">
+              <span>BASEBALL GIRL</span>
+            </article>
+            <article class="masonry-card mid neutral">
+              <span>FASHION SNAP</span>
+            </article>
+            <article class="masonry-card square orange">
+              <span>NEW YEAR IP</span>
+            </article>
+            <article class="masonry-card tall cyan">
+              <span>PORTRAIT UI</span>
+            </article>
+            <article class="masonry-card mid violet">
+              <span>FANTASY QUEEN</span>
+            </article>
+            <article class="masonry-card wide ink">
+              <span>POSTER SYSTEM</span>
+            </article>
+          </div>
+          <div class="gallery-more">
+            <button class="button button-secondary" type="button">More Works</button>
+          </div>
+        </section>
+
+        <section class="contact reveal" id="contact">
+          <div class="contact-top">
+            <p class="eyebrow">04 / Thank You</p>
+            <h2>
+              THANK <span>YOU</span>
+            </h2>
+            <p class="contact-lead">
+              Thank you for browsing this portfolio. If you want, the next step can be replacing all placeholder
+              text and cards with your real projects, screenshots and profile information.
+            </p>
+          </div>
+
+          <div class="contact-grid">
+            <article class="contact-tile glass-card">
+              <span class="tile-icon">✉</span>
+              <h3>Email</h3>
+              <p>contact@teemo.design</p>
+            </article>
+            <article class="contact-tile glass-card">
+              <span class="tile-icon">微</span>
+              <h3>WeChat</h3>
+              <p>Teemo_UI</p>
+            </article>
+            <article class="contact-tile glass-card">
+              <span class="tile-icon">Z</span>
+              <h3>Zcool</h3>
+              <p>Teemo Portfolio</p>
+            </article>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <script src="./script.js"></script>
+  </body>
+</html>
