@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>FlowBook Demo</title>
+    <meta
+      name="description"
+      content="参考 iCost 的移动端记账应用首页 demo，包含资产卡片、快捷操作、支出概览、近期账单和底部录入弹层。"
+    />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;600;700;800&family=Noto+Sans+SC:wght@400;500;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <div class="page-bg"></div>
+
+    <div class="phone-shell">
+      <div class="phone-frame">
+        <header class="status-bar">
+          <span>9:41</span>
+          <div class="battery">
+            <span class="battery-level"></span>
+          </div>
+        </header>
+
+        <main class="app-screen">
+          <section class="app-view is-active" data-view="home">
+            <header class="hero-header">
+              <div>
+                <p class="greeting">早上好 👋</p>
+                <h1>王小明</h1>
+              </div>
+              <div class="hero-actions">
+                <button class="circle-button" type="button" aria-label="通知">
+                  <span class="icon-bell"></span>
+                  <span class="dot"></span>
+                </button>
+                <button class="avatar-button" type="button" aria-label="用户头像">🧑🏻‍🦱</button>
+              </div>
+            </header>
+
+            <section class="asset-card">
+              <div class="asset-card-glow asset-glow-one"></div>
+              <div class="asset-card-glow asset-glow-two"></div>
+              <div class="asset-card-head">
+                <button class="asset-title" id="asset-title-button" type="button">
+                  总资产（元）
+                  <span class="chevron"></span>
+                </button>
+              </div>
+              <div class="asset-total" id="asset-total">
+                <span class="asset-currency">¥</span>
+                <span class="asset-amount">0.00</span>
+              </div>
+              <div class="asset-summary">
+                <div class="asset-metric">
+                  <div class="metric-label">
+                    <span class="metric-icon income-icon">↙</span>
+                    <span>本月收入</span>
+                  </div>
+                  <strong id="month-income">¥0</strong>
+                </div>
+                <div class="metric-divider"></div>
+                <div class="asset-metric">
+                  <div class="metric-label">
+                    <span class="metric-icon expense-icon">↗</span>
+                    <span>本月支出</span>
+                  </div>
+                  <strong id="month-expense">¥0</strong>
+                </div>
+              </div>
+            </section>
+
+            <section class="quick-panel">
+              <button class="quick-item" type="button" data-modal-type="income">
+                <span class="quick-icon income">↙</span>
+                <strong>收入</strong>
+              </button>
+              <button class="quick-item" type="button" data-modal-type="expense">
+                <span class="quick-icon expense">↗</span>
+                <strong>支出</strong>
+              </button>
+              <button class="quick-item" type="button" data-modal-type="transfer">
+                <span class="quick-icon transfer">✈</span>
+                <strong>转账</strong>
+              </button>
+              <button class="quick-item" type="button" id="more-button">
+                <span class="quick-icon more">···</span>
+                <strong>更多</strong>
+              </button>
+            </section>
+
+            <section class="section-block">
+              <div class="section-head">
+                <h2>支出概览</h2>
+                <button class="section-link" type="button">本月</button>
+              </div>
+              <div class="expense-card" id="expense-overview"></div>
+            </section>
+
+            <section class="section-block recent-section">
+              <div class="section-head">
+                <h2>近期账单</h2>
+                <button class="section-link" id="toggle-all-button" type="button">查看全部</button>
+              </div>
+
+              <div class="segmented-control" id="recent-filter"></div>
+
+              <div class="recent-list" id="recent-list"></div>
+            </section>
+          </section>
+
+          <section class="app-view" data-view="stats">
+            <header class="subpage-header">
+              <p class="subpage-eyebrow">统计</p>
+              <h2>收支分析</h2>
+            </header>
+            <section class="dark-card stats-summary">
+              <div>
+                <span>本月净结余</span>
+                <strong id="stats-net-balance">¥0.00</strong>
+              </div>
+              <div>
+                <span>记录总数</span>
+                <strong id="stats-entry-count">0 笔</strong>
+              </div>
+            </section>
+            <section class="dark-card chart-card">
+              <div class="mini-head">
+                <h3>分类排行</h3>
+                <span id="stats-month-label">本月</span>
+              </div>
+              <div class="stats-breakdown" id="stats-breakdown"></div>
+            </section>
+          </section>
+
+          <section class="app-view" data-view="account">
+            <header class="subpage-header">
+              <p class="subpage-eyebrow">账户</p>
+              <h2>资产与账本</h2>
+            </header>
+            <section class="dark-card account-card">
+              <span>当前账本</span>
+              <strong>个人日常</strong>
+              <p>支持本地存储演示，新增记录会保留在浏览器中。</p>
+            </section>
+            <section class="dark-card account-card">
+              <span>累计收入</span>
+              <strong id="total-income">¥0.00</strong>
+            </section>
+            <section class="dark-card account-card">
+              <span>累计支出</span>
+              <strong id="total-expense">¥0.00</strong>
+            </section>
+          </section>
+
+          <section class="app-view" data-view="settings">
+            <header class="subpage-header">
+              <p class="subpage-eyebrow">设置</p>
+              <h2>演示选项</h2>
+            </header>
+            <section class="settings-list">
+              <button class="settings-item" id="reset-button" type="button">
+                <span>恢复样例数据</span>
+                <strong>重新填充首页展示</strong>
+              </button>
+              <button class="settings-item" id="open-expense-button" type="button">
+                <span>快速记支出</span>
+                <strong>打开底部录入弹层</strong>
+              </button>
+            </section>
+          </section>
+        </main>
+
+        <button class="fab-button" id="fab-button" type="button" aria-label="新增账单">+</button>
+
+        <nav class="bottom-nav" id="bottom-nav">
+          <button class="nav-item is-active" type="button" data-view-target="home">
+            <span class="nav-icon home"></span>
+            <span>首页</span>
+          </button>
+          <button class="nav-item" type="button" data-view-target="stats">
+            <span class="nav-icon stats"></span>
+            <span>统计</span>
+          </button>
+          <button class="nav-item nav-gap" type="button" data-view-target="account">
+            <span class="nav-icon wallet"></span>
+            <span>账户</span>
+          </button>
+          <button class="nav-item" type="button" data-view-target="settings">
+            <span class="nav-icon settings"></span>
+            <span>设置</span>
+          </button>
+        </nav>
+      </div>
+    </div>
+
+    <div class="modal-backdrop" id="modal-backdrop" hidden>
+      <section class="entry-sheet" role="dialog" aria-modal="true" aria-labelledby="sheet-title">
+        <div class="sheet-handle"></div>
+        <div class="sheet-head">
+          <div>
+            <p class="subpage-eyebrow">快速录入</p>
+            <h3 id="sheet-title">新增支出</h3>
+          </div>
+          <button class="close-button" id="close-sheet-button" type="button" aria-label="关闭">×</button>
+        </div>
+
+        <div class="sheet-segmented" id="entry-type-switch">
+          <button class="sheet-tab is-active" type="button" data-entry-type="expense">支出</button>
+          <button class="sheet-tab" type="button" data-entry-type="income">收入</button>
+          <button class="sheet-tab" type="button" data-entry-type="transfer">转账</button>
+        </div>
+
+        <form class="entry-sheet-form" id="entry-form">
+          <label>
+            <span>金额</span>
+            <input id="amount-input" name="amount" type="number" min="0" step="0.01" placeholder="输入金额" required />
+          </label>
+
+          <label>
+            <span>分类</span>
+            <select id="category-input" name="category"></select>
+          </label>
+
+          <label class="full-width">
+            <span>备注</span>
+            <input id="note-input" name="note" type="text" maxlength="40" placeholder="例如：星巴克咖啡、工资收入" />
+          </label>
+
+          <label class="full-width">
+            <span>时间</span>
+            <input id="datetime-input" name="datetime" type="datetime-local" required />
+          </label>
+
+          <div class="preset-row full-width" id="preset-row"></div>
+
+          <button class="submit-button full-width" type="submit">保存这笔记录</button>
+        </form>
+      </section>
+    </div>
+
+    <template id="recent-item-template">
+      <article class="recent-item">
+        <div class="recent-icon"></div>
+        <div class="recent-copy">
+          <strong class="recent-title"></strong>
+          <span class="recent-meta"></span>
+        </div>
+        <strong class="recent-amount"></strong>
+      </article>
+    </template>
+
+    <script src="./script.js"></script>
+  </body>
+</html>
