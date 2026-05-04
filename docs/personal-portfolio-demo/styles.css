@@ -682,27 +682,24 @@ button {
   padding: 28px 0;
   overflow: hidden;
   background: transparent;
-}
-
-.gallery-mask::before,
-.gallery-mask::after {
-  position: absolute;
-  left: 0;
-  right: 0;
-  height: 88px;
-  z-index: 2;
-  pointer-events: none;
-  content: "";
-}
-
-.gallery-mask::before {
-  top: 0;
-  background: linear-gradient(180deg, rgba(5, 5, 7, 1), rgba(5, 5, 7, 0));
-}
-
-.gallery-mask::after {
-  bottom: 0;
-  background: linear-gradient(180deg, rgba(5, 5, 7, 0), rgba(5, 5, 7, 1));
+  -webkit-mask-image: linear-gradient(
+    180deg,
+    transparent 0,
+    rgba(0, 0, 0, 0.94) 9%,
+    rgba(0, 0, 0, 1) 16%,
+    rgba(0, 0, 0, 1) 84%,
+    rgba(0, 0, 0, 0.94) 91%,
+    transparent 100%
+  );
+  mask-image: linear-gradient(
+    180deg,
+    transparent 0,
+    rgba(0, 0, 0, 0.94) 9%,
+    rgba(0, 0, 0, 1) 16%,
+    rgba(0, 0, 0, 1) 84%,
+    rgba(0, 0, 0, 0.94) 91%,
+    transparent 100%
+  );
 }
 
 .gallery-scrollboard {
