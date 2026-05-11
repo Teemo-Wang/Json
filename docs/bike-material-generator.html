@@ -77,23 +77,11 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .slider-group{margin-bottom:12px}
 .slider-group label{display:flex;justify-content:space-between;font-size:12px;color:#666;margin-bottom:4px}
 .slider-group input[type="range"]{width:100%}
-.loading-overlay{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(255,255,255,0.9);z-index:200;display:flex;flex-direction:column;align-items:center;justify-content:center;transition:opacity .3s}
-.loading-overlay.hidden{opacity:0;pointer-events:none}
-.loading-spinner{width:40px;height:40px;border:3px solid #e0e0e0;border-top-color:#1976d2;border-radius:50%;animation:spin .8s linear infinite}
-@keyframes spin{to{transform:rotate(360deg)}}
-.loading-text{margin-top:12px;font-size:13px;color:#666}
-.loading-progress{width:200px;height:4px;background:#e0e0e0;border-radius:2px;margin-top:8px;overflow:hidden}
-.loading-bar{height:100%;background:#1976d2;border-radius:2px;transition:width .2s}
 .tip{background:#fff3e0;border-left:3px solid #ff9800;padding:10px 14px;font-size:12px;color:#e65100;border-radius:0 4px 4px 0;margin-bottom:16px}
 </style>
 </head>
 <body>
 <div class="header"><h1>🚲 新车素材生成器</h1><span class="badge">哈啰两轮</span></div>
-<div id="loading-overlay" class="loading-overlay">
-  <div class="loading-spinner"></div>
-  <div class="loading-text" id="loading-text">正在加载素材资源...</div>
-  <div class="loading-progress"><div class="loading-bar" id="loading-bar" style="width:0%"></div></div>
-</div>
 <div class="app">
 <div class="sidebar">
   <div class="panel">
@@ -336,7 +324,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
           <div class="slider-group"><label style="font-size:10px">缩放 <span id="val-d3-ts">100%</span></label><input type="range" id="edit-d3-ts" min="30" max="200" value="100" oninput="onEditChange()"></div>
           </div></div>
         </div>
-        <div id="e1-text-controls" style="display:none">
+        <div id="e1-text-controls" style="display:none"></div>
           <div class="ctrl-section"><div class="ctrl-section-title" onclick="toggleCtrlSection(this)">🏷️ 场景卡文案</div><div class="ctrl-section-body">
           <div class="form-row">
             <div class="form-group"><label style="font-size:10px">前缀</label><input type="text" id="edit-e1-prefix" value="辆" style="font-size:11px;width:40px" oninput="onEditChange()"></div>
@@ -485,11 +473,14 @@ var MATERIALS = [
     ]
   },
   { id:'d3', cat:'D', name:'高光分享', w:1098, h:1500, view:null, fit:'layered', bg:'transparent', hasText:false,
-    d3Text:{ topText:'首次骑到', bottomText:'哈啰「冰川号」', topFontSize:42, bottomFontSize:88, textColor:'#ffffff', textX:50, textY:10 },
+    d3Text:{ topText:'首次骑到', bottomText:'哈啰「冰川号」', topFontSize:36, bottomFontSize:72, textColor:'#ffffff', textX:50, textY:16 },
     layers:[
       { src:'Bicycle Page/D/D-1098*1500/1.png', type:'tinted-gradient', gradientTop:'#77c5f2', gradientMid:'#cff4fe', gradientMidPos:0.5, gradientBottom:'#77c5f2' },
+      { src:'Bicycle Page/D/D-1098*1500/2-左.png', type:'fixed' },
+      { src:'Bicycle Page/D/D-1098*1500/2-中.png', type:'fixed' },
+      { src:'Bicycle Page/D/D-1098*1500/2-右.png', type:'fixed' },
       { type:'d3-text' },
-      { src:null, type:'bike-view', viewKey:'right', defaultX:49, defaultY:32, defaultScale:46 }
+      { src:null, type:'bike-view', viewKey:'right', defaultX:48, defaultY:33, defaultScale:43 }
     ]
   },
   // E. 首页场景卡
@@ -539,7 +530,7 @@ function handleUpload(type, input) {
   if (!file) return;
   var reader = new FileReader();
   reader.onload = function(e) {
-    var img = new Image(); if (location.protocol !== "file:") img.crossOrigin = "anonymous";
+    var img = new Image();
     img.onload = function() {
       bikeImages[type] = img;
       var area = document.getElementById('upload-' + type);
@@ -849,7 +840,7 @@ function renderMaterial(mat, config, editParams) {
         ctx.font = d1Fs + 'px ' + fontBase;
         ctx.textAlign = 'left'; ctx.textBaseline = 'middle';
         // 投影
-        ctx.shadowColor = 'rgba(30,140,210,0.3)';
+        ctx.shadowColor = 'rgba(0,0,0,0.12)';
         ctx.shadowBlur = 12;
         ctx.shadowOffsetX = 2;
         ctx.shadowOffsetY = 4;
@@ -875,7 +866,7 @@ function renderMaterial(mat, config, editParams) {
         ctx.scale(d3Ts, d3Ts);
         ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
         // 投影
-        ctx.shadowColor = 'rgba(30,140,210,0.3)';
+        ctx.shadowColor = 'rgba(0,0,0,0.12)';
         ctx.shadowBlur = 12;
         ctx.shadowOffsetX = 2;
         ctx.shadowOffsetY = 4;
@@ -1307,18 +1298,12 @@ function preloadFixedImages(callback) {
   });
   if (toLoad.length === 0) { callback(); return; }
   var loaded = 0;
-  var total = toLoad.length;
-  var loadingText = document.getElementById('loading-text');
-  var loadingBar = document.getElementById('loading-bar');
   toLoad.forEach(function(src) {
-    var img = new Image(); if (location.protocol !== "file:") img.crossOrigin = "anonymous";
+    var img = new Image();
     img.onload = img.onerror = function() {
       fixedImageCache[src] = img;
       loaded++;
-      var pct = Math.round(loaded / total * 100);
-      if (loadingText) loadingText.textContent = '加载素材 ' + loaded + '/' + total;
-      if (loadingBar) loadingBar.style.width = pct + '%';
-      if (loaded >= total) callback();
+      if (loaded >= toLoad.length) callback();
     };
     img.src = src;
   });
@@ -1334,7 +1319,7 @@ var DEFAULT_BIKES = {
 };
 (function loadDefaultBikes() {
   Object.keys(DEFAULT_BIKES).forEach(function(type) {
-    var img = new Image(); if (location.protocol !== "file:") img.crossOrigin = "anonymous";
+    var img = new Image();
     img.onload = function() {
       bikeImages[type] = img;
       var area = document.getElementById('upload-' + type);
@@ -1351,14 +1336,8 @@ function generateAll() {
     alert('请至少上传一张车辆图片');
     return;
   }
-  // 显示加载状态
-  var overlay = document.getElementById('loading-overlay');
-  if (overlay) { overlay.classList.remove('hidden'); }
   // 先预加载固定图片，再执行生成
-  preloadFixedImages(function() {
-    doGenerate();
-    if (overlay) { overlay.classList.add('hidden'); }
-  });
+  preloadFixedImages(doGenerate);
 }
 
 function doGenerate() {
@@ -1699,7 +1678,7 @@ function handleDetailUpload(idx, input) {
   if (!file) return;
   var reader = new FileReader();
   reader.onload = function(e) {
-    var img = new Image(); if (location.protocol !== "file:") img.crossOrigin = "anonymous";
+    var img = new Image();
     img.onload = function() {
       bikeImages['detail' + idx] = img;
       document.getElementById('detail' + idx + '-text').textContent = '✅';
@@ -1715,7 +1694,7 @@ function handleBgUpload(input) {
   if (!file) return;
   var reader = new FileReader();
   reader.onload = function(e) {
-    var img = new Image(); if (location.protocol !== "file:") img.crossOrigin = "anonymous";
+    var img = new Image();
     img.onload = function() {
       bikeImages.b1bg = img;
       document.getElementById('b1bg-upload-text').textContent = '✅ 已替换';
@@ -1731,7 +1710,7 @@ function handleB6BgUpload(input) {
   if (!file) return;
   var reader = new FileReader();
   reader.onload = function(e) {
-    var img = new Image(); if (location.protocol !== "file:") img.crossOrigin = "anonymous";
+    var img = new Image();
     img.onload = function() {
       bikeImages.b6bg = img;
       document.getElementById('b6bg-upload-text').textContent = '✅ 已替换';
@@ -1747,7 +1726,7 @@ function handleB6BikeUpload(input) {
   if (!file) return;
   var reader = new FileReader();
   reader.onload = function(e) {
-    var img = new Image(); if (location.protocol !== "file:") img.crossOrigin = "anonymous";
+    var img = new Image();
     img.onload = function() {
       bikeImages.b6bike = img;
       document.getElementById('b6bike-upload-text').textContent = '✅ 已替换';
@@ -1798,6 +1777,16 @@ function onC1ColorTextChange(which) {
 function onD1ColorTextChange(which) {
   var textEl = document.getElementById('edit-d1-' + which + '-text');
   var pickerEl = document.getElementById('edit-d1-' + which);
+  var val = textEl.value.trim();
+  if (/^#[0-9a-fA-F]{6}$/.test(val)) {
+    pickerEl.value = val;
+    onEditChange();
+  }
+}
+
+function onD3ColorTextChange() {
+  var textEl = document.getElementById('edit-d3-tc-text');
+  var pickerEl = document.getElementById('edit-d3-tc');
   var val = textEl.value.trim();
   if (/^#[0-9a-fA-F]{6}$/.test(val)) {
     pickerEl.value = val;
@@ -1894,11 +1883,29 @@ function renderModalCanvas() {
       params.bikeViewX = parseInt(document.getElementById('edit-bv-x').value);
       params.bikeViewY = parseInt(document.getElementById('edit-bv-y').value);
       params.bikeViewScale = parseInt(document.getElementById('edit-bv-scale').value);
-      params.bikeViewRotate = parseInt(document.getElementById('edit-bv-rotate').value);
-      document.getElementById('val-bv-x').textContent = params.bikeViewX + '%';
-      document.getElementById('val-bv-y').textContent = params.bikeViewY + '%';
-      document.getElementById('val-bv-scale').textContent = params.bikeViewScale + '%';
-      document.getElementById('val-bv-rotate').textContent = params.bikeViewRotate + '°';
+      document.getElementById('val-d1-tr').textContent = params.d1TextRotate + '°';
+    }
+    // d3 高光分享文案参数
+    if (document.getElementById('d3-text-controls').style.display !== 'none') {
+      params.d3TopText = document.getElementById('edit-d3-top').value;
+      params.d3BottomText = document.getElementById('edit-d3-bot').value;
+      params.d3TopFontSize = parseInt(document.getElementById('edit-d3-tfs').value);
+      params.d3BottomFontSize = parseInt(document.getElementById('edit-d3-bfs').value);
+      params.d3TextColor = document.getElementById('edit-d3-tc').value;
+      document.getElementById('edit-d3-tc-text').value = params.d3TextColor;
+      params.d3TextX = parseInt(document.getElementById('edit-d3-tx').value);
+      params.d3TextY = parseInt(document.getElementById('edit-d3-ty').value);
+      params.d3TextScale = parseInt(document.getElementById('edit-d3-ts').value);
+      document.getElementById('val-d3-tx').textContent = params.d3TextX + '%';
+      document.getElementById('val-d3-ty').textContent = params.d3TextY + '%';
+      document.getElementById('val-d3-ts').textContent = params.d3TextScale + '%';
+    }
+    // e1 场景卡参数
+    if (document.getElementById('e1-text-controls').style.display !== 'none') {
+      params.e1Prefix = document.getElementById('edit-e1-prefix').value;
+      params.e1Name = document.getElementById('edit-e1-name').value;
+      params.e1NameColor = document.getElementById('edit-e1-name-color').value;
+      document.getElementById('edit-e1-name-color-text').value = params.e1NameColor;
     }
     // c1 文案参数
     if (document.getElementById('c1-text-controls').style.display !== 'none') {
@@ -1930,21 +1937,6 @@ function renderModalCanvas() {
       document.getElementById('val-d1-ty').textContent = params.d1TextY + '%';
       document.getElementById('val-d1-ts').textContent = params.d1TextScale + '%';
       document.getElementById('val-d1-tr').textContent = params.d1TextRotate + '°';
-    }
-    // d3 高光分享文案参数
-    if (document.getElementById('d3-text-controls').style.display !== 'none') {
-      params.d3TopText = document.getElementById('edit-d3-top').value;
-      params.d3BottomText = document.getElementById('edit-d3-bot').value;
-      params.d3TopFontSize = parseInt(document.getElementById('edit-d3-tfs').value);
-      params.d3BottomFontSize = parseInt(document.getElementById('edit-d3-bfs').value);
-      params.d3TextColor = document.getElementById('edit-d3-tc').value;
-      document.getElementById('edit-d3-tc-text').value = params.d3TextColor;
-      params.d3TextX = parseInt(document.getElementById('edit-d3-tx').value);
-      params.d3TextY = parseInt(document.getElementById('edit-d3-ty').value);
-      params.d3TextScale = parseInt(document.getElementById('edit-d3-ts').value);
-      document.getElementById('val-d3-tx').textContent = params.d3TextX + '%';
-      document.getElementById('val-d3-ty').textContent = params.d3TextY + '%';
-      document.getElementById('val-d3-ts').textContent = params.d3TextScale + '%';
     }
     // e1 场景卡参数
     if (document.getElementById('e1-text-controls').style.display !== 'none') {
@@ -2023,6 +2015,48 @@ function applyEdit() {
     }
   }
 
+  // e1 场景卡参数保存
+  if (document.getElementById('e1-text-controls').style.display !== 'none') {
+    params.e1Prefix = document.getElementById('edit-e1-prefix').value;
+    params.e1Name = document.getElementById('edit-e1-name').value;
+    params.e1NameColor = document.getElementById('edit-e1-name-color').value;
+  }
+
+  // c1 文案参数保存
+  if (document.getElementById('c1-text-controls').style.display !== 'none') {
+    params.c1SubText = document.getElementById('edit-c1-sub').value;
+    params.c1MainText = document.getElementById('edit-c1-main').value;
+    params.c1MainColor = document.getElementById('edit-c1-main-color').value;
+    params.c1TextX = parseInt(document.getElementById('edit-c1-tx').value);
+    params.c1TextY = parseInt(document.getElementById('edit-c1-ty').value);
+    params.c1TextScale = parseInt(document.getElementById('edit-c1-ts').value);
+  }
+
+  // d1 高光文案参数保存
+  if (document.getElementById('d1-text-controls').style.display !== 'none') {
+    params.d1Text = document.getElementById('edit-d1-text').value;
+    params.d1TextColor = document.getElementById('edit-d1-tc').value;
+    params.d1StrokeColor = document.getElementById('edit-d1-sc').value;
+    params.d1FontSize = parseInt(document.getElementById('edit-d1-fs').value);
+    params.d1StrokeWidth = parseInt(document.getElementById('edit-d1-sw').value);
+    params.d1TextX = parseInt(document.getElementById('edit-d1-tx').value);
+    params.d1TextY = parseInt(document.getElementById('edit-d1-ty').value);
+    params.d1TextScale = parseInt(document.getElementById('edit-d1-ts').value);
+    params.d1TextRotate = parseInt(document.getElementById('edit-d1-tr').value);
+  }
+
+  // d3 高光分享文案参数保存
+  if (document.getElementById('d3-text-controls').style.display !== 'none') {
+    params.d3TopText = document.getElementById('edit-d3-top').value;
+    params.d3BottomText = document.getElementById('edit-d3-bot').value;
+    params.d3TopFontSize = parseInt(document.getElementById('edit-d3-tfs').value);
+    params.d3BottomFontSize = parseInt(document.getElementById('edit-d3-bfs').value);
+    params.d3TextColor = document.getElementById('edit-d3-tc').value;
+    params.d3TextX = parseInt(document.getElementById('edit-d3-tx').value);
+    params.d3TextY = parseInt(document.getElementById('edit-d3-ty').value);
+    params.d3TextScale = parseInt(document.getElementById('edit-d3-ts').value);
+  }
+
   // layered 素材保存额外参数
   if (item.mat.fit === 'layered') {
     params.gradientTop = document.getElementById('edit-grad-top').value;
@@ -2067,28 +2101,6 @@ function applyEdit() {
       params.d1TextY = parseInt(document.getElementById('edit-d1-ty').value);
       params.d1TextScale = parseInt(document.getElementById('edit-d1-ts').value);
       params.d1TextRotate = parseInt(document.getElementById('edit-d1-tr').value);
-    }
-    // d3 高光分享文案参数保存
-    if (document.getElementById('d3-text-controls').style.display !== 'none') {
-      params.d3TopText = document.getElementById('edit-d3-top').value;
-      params.d3BottomText = document.getElementById('edit-d3-bot').value;
-      params.d3TopFontSize = parseInt(document.getElementById('edit-d3-tfs').value);
-      params.d3BottomFontSize = parseInt(document.getElementById('edit-d3-bfs').value);
-      params.d3TextColor = document.getElementById('edit-d3-tc').value;
-      params.d3TextX = parseInt(document.getElementById('edit-d3-tx').value);
-      params.d3TextY = parseInt(document.getElementById('edit-d3-ty').value);
-      params.d3TextScale = parseInt(document.getElementById('edit-d3-ts').value);
-    }
-    // d3 高光分享文案参数保存
-    if (document.getElementById('d3-text-controls').style.display !== 'none') {
-      params.d3TopText = document.getElementById('edit-d3-top').value;
-      params.d3BottomText = document.getElementById('edit-d3-bot').value;
-      params.d3TopFontSize = parseInt(document.getElementById('edit-d3-tfs').value);
-      params.d3BottomFontSize = parseInt(document.getElementById('edit-d3-bfs').value);
-      params.d3TextColor = document.getElementById('edit-d3-tc').value;
-      params.d3TextX = parseInt(document.getElementById('edit-d3-tx').value);
-      params.d3TextY = parseInt(document.getElementById('edit-d3-ty').value);
-      params.d3TextScale = parseInt(document.getElementById('edit-d3-ts').value);
     }
     // e1 场景卡参数保存
     if (document.getElementById('e1-text-controls').style.display !== 'none') {
@@ -2167,16 +2179,13 @@ function exportOne(idx) {
   var item = materialItems[idx];
   if (!item) return;
   var config = getConfig();
+  // 重新渲染一次确保最新
   var canvas = renderMaterial(item.mat, config, item.params);
-  try {
-    var link = document.createElement('a');
-    var fileName = item.mat.cat + '_' + item.mat.name + '_' + item.mat.w + 'x' + item.mat.h + '.png';
-    link.download = fileName;
-    link.href = canvas.toDataURL('image/png');
-    link.click();
-  } catch(e) {
-    alert('导出失败：' + item.mat.name + '\n可能是跨域图片限制，请在本地打开页面导出');
-  }
+  var link = document.createElement('a');
+  var fileName = item.mat.cat + '_' + item.mat.name + '_' + item.mat.w + 'x' + item.mat.h + '.png';
+  link.download = fileName;
+  link.href = canvas.toDataURL('image/png');
+  link.click();
 }
 
 function exportSingle() {
@@ -2210,19 +2219,13 @@ function exportAll() {
   var zip = new JSZip();
   var total = materialItems.length;
 
-  var skipped = 0;
   materialItems.forEach(function(item, idx) {
-    try {
-      var canvas = renderMaterial(item.mat, config, item.params);
-      var dataUrl = canvas.toDataURL('image/png');
-      var base64 = dataUrl.split(',')[1];
-      var folderName = CAT_FOLDERS[item.mat.cat] || item.mat.cat;
-      var fileName = item.mat.name + '_' + item.mat.w + 'x' + item.mat.h + '.png';
-      zip.folder(bikeName).folder(folderName).file(fileName, base64, { base64: true });
-    } catch(e) {
-      console.warn('跳过导出: ' + item.mat.name, e);
-      skipped++;
-    }
+    var canvas = renderMaterial(item.mat, config, item.params);
+    var dataUrl = canvas.toDataURL('image/png');
+    var base64 = dataUrl.split(',')[1];
+    var folderName = CAT_FOLDERS[item.mat.cat] || item.mat.cat;
+    var fileName = item.mat.name + '_' + item.mat.w + 'x' + item.mat.h + '.png';
+    zip.folder(bikeName).folder(folderName).file(fileName, base64, { base64: true });
   });
 
   zip.generateAsync({ type: 'blob' }, function(metadata) {
@@ -2233,7 +2236,7 @@ function exportAll() {
     link.download = bikeName + '-素材包.zip';
     link.click();
     URL.revokeObjectURL(link.href);
-    info.textContent = '已导出 ' + (total - skipped) + ' 张素材（ZIP）' + (skipped ? '，跳过 ' + skipped + ' 张' : '');
+    info.textContent = '已导出 ' + total + ' 张素材（ZIP）';
   });
 }
 
@@ -2251,9 +2254,6 @@ window.addEventListener('load', function() {
     setTimeout(function() {
       if (bikeImages.left || bikeImages.right || bikeImages.angle) {
         generateAll();
-      } else {
-        var overlay = document.getElementById('loading-overlay');
-        if (overlay) overlay.classList.add('hidden');
       }
     }, 300);
   }).catch(function() {
@@ -2261,9 +2261,6 @@ window.addEventListener('load', function() {
     setTimeout(function() {
       if (bikeImages.left || bikeImages.right || bikeImages.angle) {
         generateAll();
-      } else {
-        var overlay = document.getElementById('loading-overlay');
-        if (overlay) overlay.classList.add('hidden');
       }
     }, 300);
   });
