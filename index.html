@@ -1,0 +1,560 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lottie JSON 压缩工具</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/lottie-web/5.12.2/lottie.min.js"></script>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'PingFang SC', sans-serif; background: #f5f5f7; color: #1d1d1f; min-height: 100vh; }
+.container { max-width: 1200px; margin: 0 auto; padding: 24px; }
+.header { margin-bottom: 24px; }
+.header h1 { font-size: 28px; font-weight: 700; }
+.subtitle { color: #86868b; font-size: 14px; margin-top: 6px; }
+.layout { display: grid; grid-template-columns: 1fr 380px; gap: 24px; }
+.panel { background: #fff; border-radius: 16px; padding: 20px; box-shadow: 0 1px 4px rgba(0,0,0,0.06); margin-bottom: 16px; }
+.panel-title { font-size: 16px; font-weight: 600; margin-bottom: 16px; }
+.json-upload { border: 2px dashed #d2d2d7; border-radius: 12px; padding: 40px 20px; text-align: center; cursor: pointer; transition: all 0.2s; }
+.json-upload:hover, .json-upload.dragover { border-color: #0076FF; background: #f0f7ff; }
+.json-upload.loaded { border-color: #34c759; background: #f0faf3; border-style: solid; }
+.json-upload input { display: none; }
+.upload-icon { font-size: 40px; margin-bottom: 12px; }
+.upload-hint { font-size: 12px; color: #86868b; margin-top: 8px; }
+.setting-row { margin-bottom: 16px; }
+.setting-row > label { font-size: 14px; font-weight: 500; display: block; margin-bottom: 8px; }
+.radio-group { display: flex; flex-direction: column; gap: 6px; }
+.radio-label { font-size: 13px; color: #3a3a3c; cursor: pointer; display: flex; align-items: center; gap: 6px; }
+.radio-label input { accent-color: #0076FF; }
+.quality-value { color: #0076FF; font-weight: 600; }
+.slider { width: 100%; height: 6px; -webkit-appearance: none; background: #e5e5ea; border-radius: 3px; outline: none; }
+.slider::-webkit-slider-thumb { -webkit-appearance: none; width: 20px; height: 20px; border-radius: 50%; background: #0076FF; cursor: pointer; box-shadow: 0 1px 4px rgba(0,0,0,0.2); }
+.slider-labels { display: flex; justify-content: space-between; font-size: 11px; color: #86868b; margin-top: 4px; }
+.btn { padding: 12px 24px; font-size: 14px; border: none; border-radius: 10px; cursor: pointer; font-weight: 600; transition: all 0.2s; }
+.btn-primary { background: #0076FF; color: #fff; }
+.btn-primary:hover { background: #0061D1; }
+.btn-primary:disabled { opacity: 0.4; cursor: not-allowed; }
+.btn-secondary { background: #e5e5ea; color: #1d1d1f; }
+.btn-secondary:hover { background: #d1d1d6; }
+.btn-compress { width: 100%; margin-top: 8px; padding: 14px; font-size: 15px; }
+.actions { display: flex; gap: 10px; margin-top: 16px; }
+.stats-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 16px; }
+.stat-card { background: #f5f5f7; border-radius: 10px; padding: 14px; text-align: center; }
+.stat-value { font-size: 22px; font-weight: 700; color: #1d1d1f; }
+.stat-value.green { color: #34c759; }
+.stat-label { font-size: 11px; color: #86868b; margin-top: 4px; }
+.image-list { max-height: 400px; overflow-y: auto; }
+.image-item { display: grid; grid-template-columns: 50px 1fr auto; gap: 12px; align-items: center; padding: 10px; border-bottom: 1px solid #f0f0f0; }
+.image-item:last-child { border-bottom: none; }
+.image-thumb { width: 50px; height: 40px; background: #f5f5f7; border-radius: 6px; overflow: hidden; display: flex; align-items: center; justify-content: center; }
+.image-thumb img { max-width: 100%; max-height: 100%; object-fit: contain; }
+.image-info { min-width: 0; }
+.image-name { font-size: 13px; font-weight: 500; }
+.image-meta { font-size: 11px; color: #86868b; margin-top: 2px; }
+.image-saving { font-size: 13px; font-weight: 600; white-space: nowrap; }
+.image-saving.good { color: #34c759; }
+.image-saving.great { color: #0076FF; }
+.image-saving.ok { color: #ff9500; }
+.image-saving.skip { color: #86868b; }
+.preview-tabs { display: flex; gap: 4px; margin-bottom: 12px; background: #f5f5f7; border-radius: 8px; padding: 3px; }
+.tab { flex: 1; padding: 8px; border: none; background: transparent; border-radius: 6px; font-size: 13px; font-weight: 500; cursor: pointer; transition: all 0.2s; color: #86868b; }
+.tab.active { background: #fff; color: #1d1d1f; box-shadow: 0 1px 3px rgba(0,0,0,0.08); }
+.preview-placeholder { height: 300px; display: flex; align-items: center; justify-content: center; color: #86868b; font-size: 14px; background: #f5f5f7; border-radius: 10px; }
+.preview-info { font-size: 12px; color: #86868b; text-align: center; margin-top: 8px; }
+.progress-bar { width: 100%; height: 4px; background: #e5e5ea; border-radius: 2px; overflow: hidden; margin-top: 12px; }
+.progress-fill { height: 100%; background: #0076FF; border-radius: 2px; transition: width 0.3s; }
+.progress-text { font-size: 12px; color: #86868b; text-align: center; margin-top: 6px; }
+.right-col { position: sticky; top: 24px; align-self: start; }
+@media (max-width: 900px) { .layout { grid-template-columns: 1fr; } .right-col { position: static; } }
+</style>
+</head>
+<body>
+<div class="container">
+  <header class="header">
+    <h1>Lottie JSON 压缩工具</h1>
+    <p class="subtitle">压缩 Lottie JSON 中的内嵌 PNG 图片，大幅减小文件体积，保持动画画质</p>
+  </header>
+
+  <div class="layout">
+    <div class="left-col">
+      <div class="panel upload-panel">
+        <div class="panel-title">📂 上传 Lottie JSON</div>
+        <div class="json-upload" id="jsonUpload">
+          <input type="file" id="jsonInput" accept=".json">
+          <div class="upload-icon">📦</div>
+          <div id="jsonUploadText">拖拽 JSON 文件到此处，或点击选择</div>
+          <div class="upload-hint">支持包含内嵌图片的 Lottie JSON 文件</div>
+        </div>
+      </div>
+
+      <div class="panel settings-panel" id="settingsPanel" style="display:none">
+        <div class="panel-title">⚙️ 压缩设置</div>
+        <div class="setting-row">
+          <label>输出格式</label>
+          <div class="radio-group">
+            <label class="radio-label"><input type="radio" name="format" value="auto" checked> 自动选择最小格式（推荐）</label>
+            <label class="radio-label"><input type="radio" name="format" value="webp"> WebP（压缩率高，主流浏览器支持）</label>
+            <label class="radio-label"><input type="radio" name="format" value="jpeg"> JPEG（体积最小，不支持透明）</label>
+            <label class="radio-label"><input type="radio" name="format" value="png"> PNG（无损，通常不会减小体积）</label>
+          </div>
+        </div>
+        <div class="setting-row">
+          <label>压缩质量 <span id="qualityValue" class="quality-value">75%</span></label>
+          <input type="range" id="qualitySlider" min="10" max="100" value="75" class="slider">
+          <div class="slider-labels"><span>体积优先</span><span>画质优先</span></div>
+        </div>
+        <div class="setting-row">
+          <label>缩放比例 <span id="scaleValue" class="quality-value">100%</span></label>
+          <input type="range" id="scaleSlider" min="25" max="100" value="100" step="5" class="slider">
+          <div class="slider-labels"><span>25%</span><span>100%（原始尺寸）</span></div>
+        </div>
+        <div class="setting-row">
+          <label><input type="checkbox" id="skipSmall" checked> 跳过小于 2KB 的图片（通常是小图标）</label>
+        </div>
+        <button class="btn btn-primary btn-compress" id="btnCompress">🚀 开始压缩</button>
+      </div>
+
+      <div class="panel results-panel" id="resultsPanel" style="display:none">
+        <div class="panel-title">📊 压缩结果</div>
+        <div class="stats-grid" id="statsGrid"></div>
+        <div class="image-list" id="imageList"></div>
+        <div class="actions">
+          <button class="btn btn-primary" id="btnExport">📥 导出压缩后的 JSON</button>
+          <button class="btn btn-secondary" id="btnReset">🔄 重新开始</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="right-col">
+      <div class="panel preview-panel">
+        <div class="panel-title">👁️ 动画预览</div>
+        <div class="preview-tabs">
+          <button class="tab active" data-tab="compressed">压缩后</button>
+          <button class="tab" data-tab="original">原始</button>
+        </div>
+        <div id="previewContainer">
+          <div class="preview-placeholder">上传 JSON 文件后预览动画</div>
+        </div>
+        <div class="preview-info" id="previewInfo"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ========== 状态管理 ==========
+let originalData = null;       // 原始 JSON 数据
+let compressedData = null;     // 压缩后的 JSON 数据
+let originalSize = 0;          // 原始文件大小
+let lottieAnim = null;         // 当前动画实例
+let fileName = 'data.json';    // 文件名
+let compressionResults = [];   // 每张图片的压缩结果
+
+// ========== DOM 引用 ==========
+const jsonUpload = document.getElementById('jsonUpload');
+const jsonInput = document.getElementById('jsonInput');
+const jsonUploadText = document.getElementById('jsonUploadText');
+const settingsPanel = document.getElementById('settingsPanel');
+const resultsPanel = document.getElementById('resultsPanel');
+const qualitySlider = document.getElementById('qualitySlider');
+const qualityValue = document.getElementById('qualityValue');
+const scaleSlider = document.getElementById('scaleSlider');
+const scaleValue = document.getElementById('scaleValue');
+const btnCompress = document.getElementById('btnCompress');
+const btnExport = document.getElementById('btnExport');
+const btnReset = document.getElementById('btnReset');
+const statsGrid = document.getElementById('statsGrid');
+const imageList = document.getElementById('imageList');
+const previewContainer = document.getElementById('previewContainer');
+const previewInfo = document.getElementById('previewInfo');
+
+// ========== 文件上传 ==========
+jsonUpload.addEventListener('click', () => jsonInput.click());
+jsonUpload.addEventListener('dragover', (e) => { e.preventDefault(); jsonUpload.classList.add('dragover'); });
+jsonUpload.addEventListener('dragleave', () => jsonUpload.classList.remove('dragover'));
+jsonUpload.addEventListener('drop', (e) => {
+  e.preventDefault();
+  jsonUpload.classList.remove('dragover');
+  const file = e.dataTransfer.files[0];
+  if (file && file.name.endsWith('.json')) loadFile(file);
+});
+jsonInput.addEventListener('change', (e) => { if (e.target.files[0]) loadFile(e.target.files[0]); });
+
+function loadFile(file) {
+  fileName = file.name;
+  originalSize = file.size;
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    try {
+      originalData = JSON.parse(e.target.result);
+      compressedData = null;
+      compressionResults = [];
+
+      // 统计内嵌图片
+      const images = getEmbeddedImages(originalData);
+      jsonUpload.classList.add('loaded');
+      jsonUploadText.innerHTML = '<strong>' + file.name + '</strong><br>' +
+        formatSize(file.size) + ' · ' + images.length + ' 张内嵌图片';
+
+      settingsPanel.style.display = 'block';
+      resultsPanel.style.display = 'none';
+      renderPreview(originalData, 'original');
+    } catch (err) {
+      alert('JSON 解析失败: ' + err.message);
+    }
+  };
+  reader.readAsText(file);
+}
+
+// ========== 获取内嵌图片 ==========
+function getEmbeddedImages(data) {
+  return (data.assets || []).filter(a => {
+    if (!a.p) return false;
+    // 内嵌 base64 图片
+    if (a.p.startsWith('data:image')) return true;
+    // e=1 表示内嵌
+    if (a.e === 1 && a.p) return true;
+    return false;
+  });
+}
+
+// ========== 滑块事件 ==========
+qualitySlider.addEventListener('input', () => {
+  qualityValue.textContent = qualitySlider.value + '%';
+});
+scaleSlider.addEventListener('input', () => {
+  scaleValue.textContent = scaleSlider.value + '%';
+});
+
+// ========== 压缩核心逻辑 ==========
+btnCompress.addEventListener('click', startCompression);
+
+async function startCompression() {
+  if (!originalData) return;
+
+  const format = document.querySelector('input[name="format"]:checked').value;
+  const quality = parseInt(qualitySlider.value) / 100;
+  const scale = parseInt(scaleSlider.value) / 100;
+  const skipSmall = document.getElementById('skipSmall').checked;
+
+  // 深拷贝数据
+  compressedData = JSON.parse(JSON.stringify(originalData));
+  const images = getEmbeddedImages(compressedData);
+  compressionResults = [];
+
+  // 显示进度
+  btnCompress.disabled = true;
+  btnCompress.textContent = '⏳ 压缩中...';
+
+  for (let i = 0; i < images.length; i++) {
+    const asset = images[i];
+    const imgData = asset.p;
+
+    // 计算原始大小
+    const origBase64 = imgData.includes(',') ? imgData.split(',')[1] : imgData;
+    const origBytes = Math.round(origBase64.length * 3 / 4);
+
+    // 跳过小图片
+    if (skipSmall && origBytes < 2048) {
+      compressionResults.push({
+        id: asset.id,
+        originalSize: origBytes,
+        compressedSize: origBytes,
+        skipped: true,
+        width: asset.w || 0,
+        height: asset.h || 0
+      });
+      continue;
+    }
+
+    try {
+      // 尝试多种格式，选择最小的结果
+      const candidates = [];
+
+      // 尝试 WebP（通常压缩率最好）
+      if (format === 'webp' || format === 'auto') {
+        const webpResult = await compressImage(imgData, 'webp', quality, scale);
+        candidates.push(webpResult);
+      }
+      // 尝试用户选择的格式
+      if (format !== 'webp') {
+        const fmtResult = await compressImage(imgData, format, quality, scale);
+        candidates.push(fmtResult);
+      }
+      // 如果是 auto 模式，也尝试 JPEG（对不透明图片效果好）
+      if (format === 'auto') {
+        const jpegResult = await compressImage(imgData, 'jpeg', quality, scale);
+        candidates.push(jpegResult);
+      }
+
+      // 选择体积最小的候选
+      let best = candidates[0];
+      for (let c = 1; c < candidates.length; c++) {
+        if (candidates[c].dataUrl.length < best.dataUrl.length) {
+          best = candidates[c];
+        }
+      }
+
+      const newBase64 = best.dataUrl.split(',')[1];
+      const newBytes = Math.round(newBase64.length * 3 / 4);
+
+      // 关键：只有压缩后确实变小了才替换，否则保留原始数据
+      if (newBytes < origBytes) {
+        asset.p = best.dataUrl;
+        asset.u = '';
+        asset.e = 1;
+        // 如果缩放了尺寸，更新 asset 的宽高
+        if (scale < 1 && asset.w && asset.h) {
+          asset.w = Math.round(asset.w * scale);
+          asset.h = Math.round(asset.h * scale);
+        }
+        compressionResults.push({
+          id: asset.id,
+          originalSize: origBytes,
+          compressedSize: newBytes,
+          skipped: false,
+          width: best.width,
+          height: best.height,
+          thumb: best.dataUrl
+        });
+      } else {
+        // 压缩后反而变大，保留原始数据
+        compressionResults.push({
+          id: asset.id,
+          originalSize: origBytes,
+          compressedSize: origBytes,
+          skipped: true,
+          skipReason: 'bigger',
+          width: asset.w || 0,
+          height: asset.h || 0
+        });
+      }
+    } catch (err) {
+      console.error('压缩图片失败:', asset.id, err);
+      compressionResults.push({
+        id: asset.id,
+        originalSize: origBytes,
+        compressedSize: origBytes,
+        skipped: true,
+        error: err.message
+      });
+    }
+
+    // 更新进度
+    btnCompress.textContent = '⏳ 压缩中 ' + (i + 1) + '/' + images.length;
+  }
+
+  btnCompress.disabled = false;
+  btnCompress.textContent = '🚀 重新压缩';
+
+  showResults();
+  renderPreview(compressedData, 'compressed');
+}
+
+// 压缩单张图片
+function compressImage(dataUrl, format, quality, scale) {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.onload = () => {
+      const canvas = document.createElement('canvas');
+      const w = Math.round(img.width * scale);
+      const h = Math.round(img.height * scale);
+      canvas.width = w;
+      canvas.height = h;
+
+      const ctx = canvas.getContext('2d');
+      // 高质量缩放
+      ctx.imageSmoothingEnabled = true;
+      ctx.imageSmoothingQuality = 'high';
+
+      // 对于大幅缩放，使用多步缩放以获得更好的质量
+      if (scale < 0.5) {
+        stepDownDraw(ctx, img, w, h);
+      } else {
+        ctx.drawImage(img, 0, 0, w, h);
+      }
+
+      let mimeType, outputQuality;
+      switch (format) {
+        case 'webp':
+          mimeType = 'image/webp';
+          outputQuality = quality;
+          break;
+        case 'jpeg':
+          mimeType = 'image/jpeg';
+          outputQuality = quality;
+          break;
+        case 'png':
+        default:
+          mimeType = 'image/png';
+          outputQuality = undefined;
+          break;
+      }
+
+      const newDataUrl = canvas.toDataURL(mimeType, outputQuality);
+      resolve({ dataUrl: newDataUrl, width: w, height: h });
+    };
+    img.onerror = () => reject(new Error('图片加载失败'));
+    img.src = dataUrl;
+  });
+}
+
+// 多步缩放，避免大幅缩放时画质损失
+function stepDownDraw(ctx, img, targetW, targetH) {
+  let currentW = img.width;
+  let currentH = img.height;
+  const tempCanvas = document.createElement('canvas');
+  const tempCtx = tempCanvas.getContext('2d');
+  tempCanvas.width = img.width;
+  tempCanvas.height = img.height;
+  tempCtx.drawImage(img, 0, 0);
+
+  // 每次缩小一半，直到接近目标尺寸
+  while (currentW / 2 > targetW) {
+    const halfW = Math.round(currentW / 2);
+    const halfH = Math.round(currentH / 2);
+    const stepCanvas = document.createElement('canvas');
+    stepCanvas.width = halfW;
+    stepCanvas.height = halfH;
+    const stepCtx = stepCanvas.getContext('2d');
+    stepCtx.imageSmoothingEnabled = true;
+    stepCtx.imageSmoothingQuality = 'high';
+    stepCtx.drawImage(tempCanvas, 0, 0, currentW, currentH, 0, 0, halfW, halfH);
+    tempCanvas.width = halfW;
+    tempCanvas.height = halfH;
+    tempCtx.drawImage(stepCanvas, 0, 0);
+    currentW = halfW;
+    currentH = halfH;
+  }
+
+  // 最后一步缩放到目标尺寸
+  ctx.drawImage(tempCanvas, 0, 0, currentW, currentH, 0, 0, targetW, targetH);
+}
+
+// ========== 显示压缩结果 ==========
+function showResults() {
+  resultsPanel.style.display = 'block';
+
+  const totalOriginal = compressionResults.reduce((s, r) => s + r.originalSize, 0);
+  const totalCompressed = compressionResults.reduce((s, r) => s + r.compressedSize, 0);
+  const savedBytes = totalOriginal - totalCompressed;
+  const savedPercent = totalOriginal > 0 ? Math.round((savedBytes / totalOriginal) * 100) : 0;
+
+  // 计算 JSON 文件整体大小变化
+  const compressedJsonStr = JSON.stringify(compressedData);
+  const compressedJsonSize = new Blob([compressedJsonStr]).size;
+
+  statsGrid.innerHTML =
+    '<div class="stat-card"><div class="stat-value">' + formatSize(originalSize) + '</div><div class="stat-label">原始 JSON 大小</div></div>' +
+    '<div class="stat-card"><div class="stat-value green">' + formatSize(compressedJsonSize) + '</div><div class="stat-label">压缩后 JSON 大小</div></div>' +
+    '<div class="stat-card"><div class="stat-value green">-' + Math.round((1 - compressedJsonSize / originalSize) * 100) + '%</div><div class="stat-label">总体积减少</div></div>';
+
+  // 图片列表
+  let listHtml = '';
+  compressionResults.forEach(r => {
+    const saving = r.originalSize > 0 ? Math.round((1 - r.compressedSize / r.originalSize) * 100) : 0;
+    let savingClass = 'skip';
+    let savingText = '保留原始';
+    if (!r.skipped) {
+      savingClass = saving >= 50 ? 'great' : saving >= 20 ? 'good' : 'ok';
+      savingText = '-' + saving + '%';
+    } else if (r.skipReason === 'bigger') {
+      savingText = '已跳过（压缩后更大）';
+      savingClass = 'skip';
+    } else if (r.error) {
+      savingText = '失败';
+      savingClass = 'skip';
+    }
+
+    const thumbHtml = r.thumb
+      ? '<img src="' + r.thumb + '" alt="' + r.id + '">'
+      : '<span style="font-size:11px;color:#86868b">-</span>';
+
+    listHtml += '<div class="image-item">' +
+      '<div class="image-thumb">' + thumbHtml + '</div>' +
+      '<div class="image-info"><div class="image-name">' + r.id + '</div>' +
+      '<div class="image-meta">' + formatSize(r.originalSize) + (r.skipped ? '' : ' → ' + formatSize(r.compressedSize)) +
+      (r.width ? ' · ' + r.width + '×' + r.height : '') + '</div></div>' +
+      '<div class="image-saving ' + savingClass + '">' + savingText + '</div></div>';
+  });
+  imageList.innerHTML = listHtml;
+}
+
+// ========== 预览 ==========
+function renderPreview(data, label) {
+  if (!data) return;
+  const aw = data.w || 360;
+  const ah = data.h || 360;
+  const maxW = 340;
+  const sc = Math.min(maxW / aw, maxW / ah, 1);
+  const pw = Math.round(aw * sc);
+  const ph = Math.round(ah * sc);
+
+  previewContainer.innerHTML = '<div id="lottie-preview" style="width:' + pw + 'px;height:' + ph + 'px;background:#f5f5f7;border-radius:10px;margin:0 auto;"></div>';
+  if (lottieAnim) { try { lottieAnim.destroy(); } catch(e) {} }
+  lottieAnim = lottie.loadAnimation({
+    container: document.getElementById('lottie-preview'),
+    renderer: 'svg',
+    loop: true,
+    autoplay: true,
+    animationData: JSON.parse(JSON.stringify(data))
+  });
+
+  const jsonStr = JSON.stringify(data);
+  const size = new Blob([jsonStr]).size;
+  previewInfo.textContent = label === 'original'
+    ? '原始 · ' + formatSize(size)
+    : '压缩后 · ' + formatSize(size);
+}
+
+// 预览标签切换
+document.querySelectorAll('.tab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    tab.classList.add('active');
+    const which = tab.dataset.tab;
+    if (which === 'original' && originalData) renderPreview(originalData, 'original');
+    else if (which === 'compressed' && compressedData) renderPreview(compressedData, 'compressed');
+    else if (originalData) renderPreview(originalData, 'original');
+  });
+});
+
+// ========== 导出 ==========
+btnExport.addEventListener('click', () => {
+  if (!compressedData) return;
+  const jsonStr = JSON.stringify(compressedData);
+  const blob = new Blob([jsonStr], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = fileName.replace('.json', '-compressed.json');
+  a.click();
+  URL.revokeObjectURL(url);
+});
+
+// ========== 重置 ==========
+btnReset.addEventListener('click', () => {
+  originalData = null;
+  compressedData = null;
+  compressionResults = [];
+  originalSize = 0;
+  jsonUpload.classList.remove('loaded');
+  jsonUploadText.textContent = '拖拽 JSON 文件到此处，或点击选择';
+  settingsPanel.style.display = 'none';
+  resultsPanel.style.display = 'none';
+  previewContainer.innerHTML = '<div class="preview-placeholder">上传 JSON 文件后预览动画</div>';
+  previewInfo.textContent = '';
+  btnCompress.textContent = '🚀 开始压缩';
+  btnCompress.disabled = false;
+  jsonInput.value = '';
+});
+
+// ========== 工具函数 ==========
+function formatSize(bytes) {
+  if (bytes < 1024) return bytes + ' B';
+  if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+  return (bytes / (1024 * 1024)).toFixed(2) + ' MB';
+}
+</script>
+</body>
+</html>
