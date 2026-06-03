@@ -1014,13 +1014,17 @@ function buildLayerHTML(idx, name, typeName, cur) {
 function bindLayerControls(item, idx, layer) {
   const ks = layer.ks || {};
 
+  // 跟踪上次应用的偏移值，避免累积
+  let lastOffset = { px: 0, py: 0 };
+
   // 通用：应用某个属性的值变更
   function applyValue(prop, val) {
     if (prop === 'px' || prop === 'py') {
       const axisIdx = prop === 'px' ? 0 : 1;
-      const orig = originalTransforms[idx];
-      const baseVal = (orig.px && orig.px[axisIdx]) || 0;
-      setTransformVal(ks.p, axisIdx, baseVal + val);
+      // 计算本次偏移增量 = 当前值 - 上次值，乘以1.5倍增强移动幅度
+      const delta = (val - lastOffset[prop]) * 1.5;
+      lastOffset[prop] = val;
+      offsetTransformVal(ks.p, axisIdx, delta);
     } else if (prop === 's') {
       setTransformVal(ks.s, 0, val);
       setTransformVal(ks.s, 1, val);
@@ -1109,13 +1113,28 @@ function getTransformSingle(prop) {
 function setTransformVal(prop, axis, val) {
   if (!prop) return;
   if (prop.a === 1 && prop.k) {
-    // 动画属性：修改所有关键帧
+    // 动画属性：直接设置所有关键帧的目标轴为同一个值
+    // 注意：这会破坏该轴上的动画效果，但对于位置偏移场景，
+    // 我们改用 offsetTransformVal 来保持动画
     prop.k.forEach(kf => {
       if (kf.s && kf.s.length > axis) kf.s[axis] = val;
       if (kf.e && kf.e.length > axis) kf.e[axis] = val;
     });
   } else if (Array.isArray(prop.k) && prop.k.length > axis) {
     prop.k[axis] = val;
+  }
+}
+
+// 对动画属性的所有关键帧统一增加偏移量（保留帧间差异，维持动画效果）
+function offsetTransformVal(prop, axis, delta) {
+  if (!prop || delta === 0) return;
+  if (prop.a === 1 && prop.k) {
+    prop.k.forEach(kf => {
+      if (kf.s && kf.s.length > axis) kf.s[axis] += delta;
+      if (kf.e && kf.e.length > axis) kf.e[axis] += delta;
+    });
+  } else if (Array.isArray(prop.k) && prop.k.length > axis) {
+    prop.k[axis] += delta;
   }
 }
 
